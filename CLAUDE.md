@@ -12,12 +12,64 @@ const client = new ZykaClient({
   apiUrl: 'https://zyka.ai/api-v2',  // production default
 });
 
-// Generate a video and wait for completion
-const video = await client.createVideo(
-  { model: 'wan', prompt: 'A sunset over mountains', duration: 5, aspect_ratio: '16:9' },
-  { waitForCompletion: true }
-);
+// Generate a video — waits for completion by default!
+const video = await client.createVideo({ model: 'wan', prompt: 'A sunset over mountains' });
 console.log(video.outputUrl);
+
+// Generate an image from a local file — auto-uploaded!
+const image = await client.createImage(
+  { model: 'nano_banana', image: './photo.png', prompt: 'make hair straight' },
+  { output: './result.png' }  // auto-downloaded!
+);
+```
+
+---
+
+## ✨ Key DX Features
+
+### Local File Support
+Pass local file paths instead of URLs. The SDK auto-uploads them.
+```js
+// Before (painful): manually upload to get URL, then use URL
+// After (easy): just pass the path
+await client.createVideo({ model: 'kling', image_url: './photo.png', prompt: 'Animate this' });
+await client.createImage({ model: 'nano_banana', image: './input.jpg', prompt: '...' });
+await client.createTTS({ provider: 'chatterbox', actual_voice_url: './my-voice.mp3', script: '...' });
+```
+
+### Auto-Wait (waitForCompletion = true by default)
+```js
+// Just await — no manual polling!
+const result = await client.createVideo({ model: 'wan', prompt: 'A sunset' });
+console.log(result.outputUrl);  // ready immediately
+
+// To get fire-and-forget behavior:
+const pending = await client.createVideo(
+  { model: 'wan', prompt: 'A sunset' },
+  { waitForCompletion: false }
+);
+```
+
+### Auto-Download Results
+```js
+const result = await client.createImage(
+  { model: 'nano_banana', prompt: 'neon city' },
+  { output: './output.png' }  // downloaded to this path
+);
+```
+
+### CLI Generate Command
+```bash
+npx zyka generate image -m nano_banana -p "neon city" -o ./result.png
+npx zyka generate video -m wan -p "sunset over mountains" -o ./video.mp4
+npx zyka generate tts --script "Hello world" --voice-id abc123 -o ./speech.mp3
+```
+
+### asset() Helper (Remotion-like public/ folder)
+```js
+import { asset } from 'zyka-sdk';
+// Place files in ./public/ — reference by name
+await client.createImage({ model: 'nano_banana', image: asset('photo.png'), prompt: '...' });
 ```
 
 ---
@@ -42,167 +94,111 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 - **seconds**: `'4'`–`'8'`
 - **aspect_ratio**: `'16:9'`, `'9:16'` (required)
 - **size**: `'720p'`, `'1080p'`, `'4k'`
-- **ingredients**: Array of up to 20 image URLs (Veo 3.1 only)
 
 ### kling (Kling AI)
 ```js
-// Image-to-video (motion-control, default sub_model)
-{ model: 'kling', sub_model: 'motion-control', image_url: '...', prompt: '...', mode: 'std', character_orientation: 'image', duration: '5' }
-
-// Text-to-video
 { model: 'kling', sub_model: 'kling-v2-master', prompt: '...', duration: '5', aspect_ratio: '16:9' }
 ```
-- **sub_model**: `'motion-control'` (default), `'kling-v1'`, `'kling-v1-5'`, `'kling-v1-6'`, `'kling-v2-master'`, `'kling-v2-1-master'`, `'kling-v2-5-turbo'`, `'kling-v2-6'`, `'kling-v3'`, `'kling-v3-pro'`, `'kling-o3'`, `'kling-o3-pro'`, `'multi-image-to-video'`, `'kling-video-o1'`
+- **sub_model**: `'motion-control'` (default), `'kling-v1'` thru `'kling-v3-pro'`, `'kling-o3'`, `'kling-o3-pro'`, `'multi-image-to-video'`, `'kling-video-o1'`
 - **duration**: `'5'` or `'10'` (most); `'3'`–`'10'` (video-o1); `'3'`–`'15'` (v3/o3)
 - **mode**: `'std'`, `'pro'`
 - **aspect_ratio**: `'16:9'`, `'9:16'`, `'1:1'`
-- **image_url**: Required for motion-control (image-to-video)
-- **character_orientation**: `'image'` or `'video'` (required for motion-control)
-- **sound**: `'on'`/`'off'` (v2.6+ only)
 
 ### bytedance (Seedance / OmniHuman)
 ```js
-{ model: 'bytedance', sub_model: 'Seedance V1.5 Pro', prompt: '...', duration: '5', resolution: '1080p', aspect_ratio: '16:9' }
+{ model: 'bytedance', sub_model: 'Seedance V1.5 Pro', prompt: '...', duration: '5', resolution: '1080p' }
 ```
 - **sub_model**: `'Seedance V1.5 Pro'` (default), `'OmniHuman'`, `'OmniHuman v1.5'`
 - **duration**: `'4'`–`'12'`
 - **resolution**: `'480p'`, `'720p'`, `'1080p'`
 - **aspect_ratio**: `'21:9'`, `'16:9'`, `'4:3'`, `'1:1'`, `'3:4'`, `'9:16'`
-- **generate_audio**: boolean (default true)
 
 ### wan (Alibaba WAN)
 ```js
-// Text-to-video
-{ model: 'wan', sub_model: 'wan-2-6-t2v', prompt: '...', duration: 5:, aspect_ratio: '16:9' }
-// Image-to-video
-{ model: 'wan', sub_model: 'wan-2-6-i2v', prompt: '...', image_url: '...', duration: 5 }
+{ model: 'wan', sub_model: 'wan-2-6-t2v', prompt: '...', duration: 5 }
 ```
-- **sub_model**: `'wan-2-6-t2v'` (default, text-to-video), `'wan-2-6-i2v'` (image-to-video), `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
+- **sub_model**: `'wan-2-6-t2v'` (default), `'wan-2-6-i2v'`, `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
 - **duration**: `5`, `10`, or `15` (number)
-- **seconds**: `'5'`, `'10'`, `'15'` (string alternative)
 - **size**: `'1280*720'`, `'1920*1080'`, `'720*1280'`, `'1080*1920'`
-- **seed**: number (-1 for random)
-- **audio_url**: WAV or MP3 URL (optional, for audio-reactive video)
 
 ### infinite_talk (Talking Head)
 ```js
-{ model: 'infinite_talk', image_url: 'https://face.jpg', audio_url: 'https://speech.mp3' }
+{ model: 'infinite_talk', image_url: './face.jpg', audio_url: './speech.mp3' }
 ```
-- **image_url**: Face image URL (required)
-- **audio_url**: Speech audio URL (required)
-- **input_type**: `'image'` or `'video'`
-- **person_count**: `'single'` or `'multi'`
-- **audio_url_2**: Required for multi-person
-- **width/height**: 256–1024
+- **image_url**: Face image (required) — local path or URL
+- **audio_url**: Speech audio (required) — local path or URL
 
 ---
 
 ## Image Models
 
-The `model` field must be one of:
-
-| Model                              | Sub-model default               | Notes                                 |
-|------------------------------------|---------------------------------|---------------------------------------|
-| `nano_banana`                      | `nano-banana-1`                 | Gemini-based. Sub-models: `nano-banana-1`, `nano-banana-pro` |
-| `flux_2_dev`                       | `flux-2-dev`                    | Flux 2 Dev                            |
-| `flux_1_schnell`                   | `flux-1-schnell`                | Flux 1 Schnell (fast)                 |
-| `lucid_origin`                     | `lucid-origin`                  | Lucid Origin                          |
-| `phoenix_1_0`                      | `phoenix-1.0`                   | Phoenix 1.0                           |
-| `stable_diffusion_v1_5_img2img`    | `stable-diffusion-v1-5-img2img` | SD 1.5 img2img (requires `image`)     |
-| `stable_diffusion_xl_base_1_0`     | `stable-diffusion-xl-base-1.0`  | SD XL Base 1.0                        |
-| `dall_e_2`                         | `dall-e-2`                      | DALL-E 2. Sizes: 256², 512², 1024²    |
-| `dall_e_3`                         | `dall-e-3`                      | DALL-E 3. Quality: `'standard'`/`'hd'` |
-| `gpt_image_1`                      | `gpt-image-1`                   | GPT Image 1. `background: 'transparent'` supported |
-| `gpt_image_1_mini`                 | `gpt-image-1-mini`              | GPT Image 1 Mini (cheaper)            |
-| `gpt_image_1_5`                    | `gpt-image-1.5`                 | GPT Image 1.5 (latest)                |
-| `kling`                            | `kling-v1`                      | Sub-models: `kling-v2`, `omni-image`, `kling-image-v3`, etc. |
-| `z_image_turbo`                    | `z-image-turbo`                 | Fast generation                       |
-
-```js
-// Nano Banana 1
-{ model: 'nano_banana', prompt: 'A neon city', size: '1024x1024' }
-
-// Nano Banana Pro (higher res)
-{ model: 'nano_banana', sub_model: 'nano-banana-pro', prompt: '...', resolution: '4K' }
-
-// GPT Image 1 with transparent background
-{ model: 'gpt_image_1', prompt: 'Product photo of sneakers', size: '1024x1024', background: 'transparent' }
-
-// DALL-E 3
-{ model: 'dall_e_3', prompt: 'Watercolor sunset', size: '1024x1024', quality: 'hd' }
-```
+| Model | Notes |
+|---|---|
+| `nano_banana` | Sub-models: `nano-banana-1` (default), `nano-banana-pro` |
+| `flux_1_schnell` | Fast generation |
+| `flux_2_dev` | Flux 2 Dev |
+| `dall_e_2` | Sizes: 256², 512², 1024² |
+| `dall_e_3` | Quality: `'standard'`/`'hd'` |
+| `gpt_image_1` | `background: 'transparent'` supported |
+| `gpt_image_1_mini` | Cheaper variant |
+| `gpt_image_1_5` | Latest |
+| `kling` | Sub-models: `kling-v1` thru `kling-image-v3` |
+| `stable_diffusion_xl_base_1_0` | SD XL |
+| `stable_diffusion_v1_5_img2img` | Requires `image` |
+| `lucid_origin` | Leonardo |
+| `phoenix_1_0` | Phoenix |
+| `z_image_turbo` | Fast |
 
 ---
 
-## TTS (Text-to-Speech)
+## TTS Providers
 
-Providers: `elevenlabs` (default), `qwen3`, `chatterbox`, `voxcpm`, `minimax`, `moss-tts`
-
-```js
-// ElevenLabs (simplest)
-await client.createTTS(
-  { voice_id: 'your-elevenlabs-voice-id', script: 'Hello world' },
-  { waitForCompletion: true }
-);
-
-// Chatterbox with voice cloning
-{ provider: 'chatterbox', script: 'Hello', actual_voice_url: 'https://ref.mp3', temperature: 0.7, speed: 1.0 }
-
-// MiniMax preset voice
-{ provider: 'minimax', script: 'Hello', voice_setting: { voice_id: 'Wise_Woman', speed: 1.0 } }
-```
+| Provider | Features |
+|---|---|
+| `elevenlabs` | Default. Requires `voice_id` |
+| `qwen3` | voice_design, voice_clone, custom_voice |
+| `chatterbox` | Voice cloning + emotion control |
+| `voxcpm` | Voice cloning |
+| `minimax` | 17 preset voices |
+| `moss-tts` | RunPod-based |
 
 ---
 
 ## Direct Client API
 
-```js
-const { ZykaClient } = require('zyka-sdk');
-const client = new ZykaClient();
-```
+| Method | Auto-Wait | Description |
+|---|---|---|
+| `client.createVideo(params, opts?)` | ✅ default | Video generation |
+| `client.createImage(params, opts?)` | ✅ default | Image generation |
+| `client.createTTS(params, opts?)` | ✅ default | Text-to-speech |
+| `client.pollUntilComplete(id, type)` | — | Manual polling |
 
-| Method | Polling | Description |
-|--------|---------|-------------|
-| `client.createVideo(params, opts?)` | ✅ | Start video generation |
-| `client.createImage(params, opts?)` | ✅ | Start image generation |
-| `client.createTTS(params, opts?)` | ✅ | Start text-to-speech |
-| `client.getVideoStatus(id)` | — | Check video job status |
-| `client.getImageStatus(id)` | — | Check image job status |
-| `client.getTTSStatus(id)` | — | Check TTS job status |
-| `client.pollUntilComplete(id, type, opts?)` | — | Poll any job until done |
-| `client.createUpscale(params)` | — | Upscale image |
-| `client.createFaceSwap(params)` | — | Face swap |
-| `client.createVirtualTryOn(params)` | — | Virtual try-on |
-| `client.refinePrompt(params)` | — | AI prompt refinement |
-
-All `create*` methods accept optional `{ waitForCompletion: true, timeoutMs: 300000, pollIntervalMs: 5000 }`.
+**WaitOptions**: `{ waitForCompletion?: boolean, output?: string, timeoutMs?: number }`
 
 ---
 
 ## Auth
-
-Token resolution order:
 1. Constructor: `new ZykaClient({ token: '...' })`
 2. Environment: `ZYKA_API_TOKEN`
 3. Config file: `~/.zyka/config.json` (set via `zyka auth login`)
 
 ## Build
-
 ```bash
 pnpm install
-pnpm --filter zyka-sdk build    # core SDK → packages/core/dist/
-pnpm --filter zyka build        # CLI → packages/cli/dist/
+pnpm --filter zyka-sdk build
+pnpm --filter zyka build
 ```
 
 ## Project Structure
-
 ```
 packages/core/src/
-  types.ts        — All TypeScript types (models, params, sub-models)
-  client.ts       — ZykaClient class (all API methods + polling)
+  types.ts        — All types (models, params, sub-models)
+  client.ts       — ZykaClient (API methods + auto-upload + polling + download)
+  file-utils.ts   — Local file detection, upload, download
+  asset.ts        — asset() helper (public/ folder convention)
   helpers.ts      — Convenience functions (renderVideo, renderImage, etc.)
-  composition.ts  — Pipeline composition() + scene() factories
-  runner.ts       — Pipeline executor (render function)
+  composition.ts  — Pipeline composition() + scene()
+  runner.ts       — Pipeline executor
   index.ts        — Barrel export
-packages/cli/src/ — CLI binary (auth, init, render commands)
+packages/cli/src/ — CLI (auth, init, render, generate commands)
 ```

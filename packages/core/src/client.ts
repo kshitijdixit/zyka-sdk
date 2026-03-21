@@ -19,6 +19,7 @@ import type {
   GenerationType,
   WaitOptions,
 } from './types';
+import { resolveToUrl, downloadFile } from './file-utils';
 
 // ─────────────────────────────────────────────
 // Token resolution
@@ -190,12 +191,31 @@ export class ZykaClient {
     this.baseUrl = resolveBaseUrl(config);
   }
 
+  // ── Internal helpers ────────────────────────
+
+  /**
+   * Resolve a field: if it's a local file path, upload it and return the URL.
+   */
+  private async resolveFile(value: string | undefined): Promise<string | undefined> {
+    return resolveToUrl(value, this.baseUrl, this.token);
+  }
+
+  /**
+   * After a completed result, download to local path if `output` option is set.
+   */
+  private async maybeDownload(result: GenerationResult, options?: WaitOptions): Promise<GenerationResult> {
+    if (options?.output && result.outputUrl) {
+      await downloadFile(result.outputUrl, options.output);
+    }
+    return result;
+  }
+
   // ── Built-in polling ────────────────────────
 
   /**
    * Poll a generation job until it completes or fails.
    * @example
-   * const pending = await client.createVideo({ model: 'wan', prompt: '...' });
+   * const pending = await client.createVideo({ model: 'wan', prompt: '...' }, { waitForCompletion: false });
    * const completed = await client.pollUntilComplete(pending.id, 'video');
    * console.log(completed.outputUrl); // video URL
    */
@@ -222,30 +242,52 @@ export class ZykaClient {
 
   /**
    * Create a video generation job.
+   * By default, waits for completion (polls automatically).
+   * Local file paths for image_url, audio_url, first_frame, last_frame are auto-uploaded.
    *
    * @example
-   * // Fire-and-forget (returns immediately with PENDING status)
-   * const pending = await client.createVideo({ model: 'wan', prompt: 'A sunset' });
+   * // Simplest (waits for completion by default)
+   * const result = await client.createVideo({ model: 'wan', prompt: 'A sunset' });
+   * console.log(result.outputUrl);
    *
    * @example
-   * // Wait for completion (polls automatically, returns when done)
-   * const done = await client.createVideo(
-   *   { model: 'grok', prompt: 'A cat playing piano', duration: '5s' },
-   *   { waitForCompletion: true }
+   * // With local image (auto-uploaded)
+   * const result = await client.createVideo(
+   *   { model: 'kling', prompt: 'Animate this', image_url: './photo.png' },
+   *   { output: './result.mp4' }  // auto-download
    * );
-   * console.log(done.outputUrl); // ready to use!
+   *
+   * @example
+   * // Fire-and-forget (returns immediately)
+   * const pending = await client.createVideo(
+   *   { model: 'wan', prompt: 'A sunset' },
+   *   { waitForCompletion: false }
+   * );
    */
   async createVideo(params: VideoGenerationParams, options?: WaitOptions): Promise<GenerationResult> {
+    // Auto-upload local files
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.image_url = await this.resolveFile(params.image_url);
+    resolved.audio_url = await this.resolveFile(params.audio_url);
+    resolved.audio_url_2 = await this.resolveFile(params.audio_url_2);
+    resolved.first_frame = await this.resolveFile(params.first_frame);
+    resolved.last_frame = await this.resolveFile(params.last_frame);
+    resolved.inputReference = await this.resolveFile(params.inputReference);
+
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/video-generation',
-      body: params as Record<string, unknown>,
+      body: resolved,
       token: this.token,
       baseUrl: this.baseUrl,
     });
     const result = normalizeResult(res.data || {}, 'video');
-    if (options?.waitForCompletion) {
-      return this.pollUntilComplete(result.id, 'video', options);
+
+    // Default: waitForCompletion = true
+    const shouldWait = options?.waitForCompletion !== false;
+    if (shouldWait) {
+      const completed = await this.pollUntilComplete(result.id, 'video', options);
+      return this.maybeDownload(completed, options);
     }
     return result;
   }
@@ -274,26 +316,37 @@ export class ZykaClient {
 
   /**
    * Create an image generation job.
+   * By default, waits for completion. Local file paths for `image` are auto-uploaded.
    *
    * @example
-   * // Wait for completion
+   * // Simplest (waits by default)
+   * const result = await client.createImage({ model: 'nano_banana', prompt: 'A neon city' });
+   *
+   * @example
+   * // Edit a local image (auto-uploaded + auto-downloaded)
    * const result = await client.createImage(
-   *   { model: 'flux-1', prompt: 'A neon city at night' },
-   *   { waitForCompletion: true }
+   *   { model: 'nano_banana', image: './photo.png', prompt: 'make hair straight' },
+   *   { output: './result.png' }
    * );
-   * console.log(result.outputUrl);
    */
   async createImage(params: ImageGenerationParams, options?: WaitOptions): Promise<GenerationResult> {
+    // Auto-upload local files
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.image = await this.resolveFile(params.image);
+
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/image-generation',
-      body: params as Record<string, unknown>,
+      body: resolved,
       token: this.token,
       baseUrl: this.baseUrl,
     });
     const result = normalizeResult(res.data || {}, 'image');
-    if (options?.waitForCompletion) {
-      return this.pollUntilComplete(result.id, 'image', options);
+
+    const shouldWait = options?.waitForCompletion !== false;
+    if (shouldWait) {
+      const completed = await this.pollUntilComplete(result.id, 'image', options);
+      return this.maybeDownload(completed, options);
     }
     return result;
   }
@@ -322,23 +375,37 @@ export class ZykaClient {
 
   /**
    * Create a text-to-speech job.
+   * By default, waits for completion. Local file paths for `actual_voice_url` are auto-uploaded.
+   *
    * @example
-   * const audio = await client.createTTS(
-   *   { voice_id: 'your-voice-id', text: 'Hello world' },
-   *   { waitForCompletion: true }
+   * // Simplest
+   * const result = await client.createTTS({ voice_id: 'your-voice-id', script: 'Hello world' });
+   *
+   * @example
+   * // Voice clone from local audio file
+   * const result = await client.createTTS(
+   *   { provider: 'chatterbox', actual_voice_url: './my-voice.mp3', script: 'Hello' },
+   *   { output: './speech.mp3' }
    * );
    */
   async createTTS(params: TTSParams, options?: WaitOptions): Promise<GenerationResult> {
+    // Auto-upload local files
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.actual_voice_url = await this.resolveFile(params.actual_voice_url);
+
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/voice-clone/tts',
-      body: params as Record<string, unknown>,
+      body: resolved,
       token: this.token,
       baseUrl: this.baseUrl,
     });
     const result = normalizeResult(res.data || {}, 'tts');
-    if (options?.waitForCompletion) {
-      return this.pollUntilComplete(result.id, 'tts', options);
+
+    const shouldWait = options?.waitForCompletion !== false;
+    if (shouldWait) {
+      const completed = await this.pollUntilComplete(result.id, 'tts', options);
+      return this.maybeDownload(completed, options);
     }
     return result;
   }

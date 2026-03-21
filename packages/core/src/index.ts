@@ -3,6 +3,8 @@
 export { ZykaClient } from './client';
 export { composition, scene } from './composition';
 export { render } from './runner';
+export { asset } from './asset';
+export { uploadLocalFile, downloadFile, isLocalPath } from './file-utils';
 export {
   renderVideo,
   renderImage,

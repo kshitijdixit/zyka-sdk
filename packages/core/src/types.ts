@@ -482,12 +482,18 @@ export interface PromptRefinementParams {
 // ─────────────────────────────────────────────
 
 export interface WaitOptions {
-  /** If true, polls until COMPLETED or FAILED. Default: false */
+  /** If true, polls until COMPLETED or FAILED. Default: true */
   waitForCompletion?: boolean;
   /** Timeout in ms. Default: 5 minutes */
   timeoutMs?: number;
   /** Poll interval in ms. Default: 3000 */
   pollIntervalMs?: number;
+  /**
+   * Local file path to download the result to.
+   * If provided, the output (video/image/audio) is auto-downloaded after completion.
+   * @example { output: './result.mp4' }
+   */
+  output?: string;
 }
 
 // ─────────────────────────────────────────────
