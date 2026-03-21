@@ -17,6 +17,7 @@ import type {
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
+  WaitOptions,
 } from './types';
 
 // ─────────────────────────────────────────────
@@ -189,9 +190,52 @@ export class ZykaClient {
     this.baseUrl = resolveBaseUrl(config);
   }
 
+  // ── Built-in polling ────────────────────────
+
+  /**
+   * Poll a generation job until it completes or fails.
+   * @example
+   * const pending = await client.createVideo({ model: 'wan', prompt: '...' });
+   * const completed = await client.pollUntilComplete(pending.id, 'video');
+   * console.log(completed.outputUrl); // video URL
+   */
+  async pollUntilComplete(
+    id: string,
+    type: GenerationType,
+    opts?: { timeoutMs?: number; pollIntervalMs?: number }
+  ): Promise<GenerationResult> {
+    const timeout = opts?.timeoutMs ?? 5 * 60 * 1000;
+    const interval = opts?.pollIntervalMs ?? 3000;
+    const deadline = Date.now() + timeout;
+
+    while (Date.now() < deadline) {
+      const result = await this.checkStatus(type, id);
+      if (result.status === 'COMPLETED') return result;
+      if (result.status === 'FAILED') throw new Error(`Generation ${id} (${type}) failed.`);
+      await new Promise(r => setTimeout(r, interval));
+    }
+
+    throw new Error(`Timed out after ${timeout / 1000}s waiting for ${type} generation "${id}"`);
+  }
+
   // ── Video Generation ─────────────────────
 
-  async createVideo(params: VideoGenerationParams): Promise<GenerationResult> {
+  /**
+   * Create a video generation job.
+   *
+   * @example
+   * // Fire-and-forget (returns immediately with PENDING status)
+   * const pending = await client.createVideo({ model: 'wan', prompt: 'A sunset' });
+   *
+   * @example
+   * // Wait for completion (polls automatically, returns when done)
+   * const done = await client.createVideo(
+   *   { model: 'grok', prompt: 'A cat playing piano', duration: '5s' },
+   *   { waitForCompletion: true }
+   * );
+   * console.log(done.outputUrl); // ready to use!
+   */
+  async createVideo(params: VideoGenerationParams, options?: WaitOptions): Promise<GenerationResult> {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/video-generation',
@@ -199,7 +243,11 @@ export class ZykaClient {
       token: this.token,
       baseUrl: this.baseUrl,
     });
-    return normalizeResult(res.data || {}, 'video');
+    const result = normalizeResult(res.data || {}, 'video');
+    if (options?.waitForCompletion) {
+      return this.pollUntilComplete(result.id, 'video', options);
+    }
+    return result;
   }
 
   async getVideo(id: string): Promise<GenerationResult> {
@@ -224,7 +272,18 @@ export class ZykaClient {
 
   // ── Image Generation ─────────────────────
 
-  async createImage(params: ImageGenerationParams): Promise<GenerationResult> {
+  /**
+   * Create an image generation job.
+   *
+   * @example
+   * // Wait for completion
+   * const result = await client.createImage(
+   *   { model: 'flux-1', prompt: 'A neon city at night' },
+   *   { waitForCompletion: true }
+   * );
+   * console.log(result.outputUrl);
+   */
+  async createImage(params: ImageGenerationParams, options?: WaitOptions): Promise<GenerationResult> {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/image-generation',
@@ -232,7 +291,11 @@ export class ZykaClient {
       token: this.token,
       baseUrl: this.baseUrl,
     });
-    return normalizeResult(res.data || {}, 'image');
+    const result = normalizeResult(res.data || {}, 'image');
+    if (options?.waitForCompletion) {
+      return this.pollUntilComplete(result.id, 'image', options);
+    }
+    return result;
   }
 
   async getImage(id: string): Promise<GenerationResult> {
@@ -257,7 +320,15 @@ export class ZykaClient {
 
   // ── TTS ──────────────────────────────────
 
-  async createTTS(params: TTSParams): Promise<GenerationResult> {
+  /**
+   * Create a text-to-speech job.
+   * @example
+   * const audio = await client.createTTS(
+   *   { voice_id: 'your-voice-id', text: 'Hello world' },
+   *   { waitForCompletion: true }
+   * );
+   */
+  async createTTS(params: TTSParams, options?: WaitOptions): Promise<GenerationResult> {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/voice-clone/tts',
@@ -265,7 +336,11 @@ export class ZykaClient {
       token: this.token,
       baseUrl: this.baseUrl,
     });
-    return normalizeResult(res.data || {}, 'tts');
+    const result = normalizeResult(res.data || {}, 'tts');
+    if (options?.waitForCompletion) {
+      return this.pollUntilComplete(result.id, 'tts', options);
+    }
+    return result;
   }
 
   async getTTSStatus(id: string): Promise<GenerationResult> {

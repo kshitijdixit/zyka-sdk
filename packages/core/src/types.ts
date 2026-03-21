@@ -1,13 +1,11 @@
-import { z } from 'zod';
-
 // ─────────────────────────────────────────────
 // SDK Config
 // ─────────────────────────────────────────────
 
 export interface ZykaConfig {
-  /** Zyka API base URL. Defaults to ZYKA_API_URL env var or https://api.zyka.ai */
+  /** Zyka API base URL. Defaults to ZYKA_API_URL env var or https://zyka.ai/api-v2 */
   apiUrl?: string;
-  /** JWT Bearer token. Defaults to ZYKA_API_TOKEN env var */
+  /** JWT Bearer token. Defaults to ZYKA_API_TOKEN env var or ~/.zyka/config.json */
   token?: string;
   /** Max ms to wait for a generation to complete. Default: 5 minutes */
   timeoutMs?: number;
@@ -16,16 +14,72 @@ export interface ZykaConfig {
 }
 
 // ─────────────────────────────────────────────
+// Model types (must match backend /api/video-generation model validation)
+// ─────────────────────────────────────────────
+
+/**
+ * Supported video generation models.
+ *
+ * | Model         | Type            | Duration       | Notes                              |
+ * |---------------|-----------------|----------------|------------------------------------|
+ * | `grok`        | text-to-video   | 1-15s (string) | Use `"5s"` format for duration     |
+ * | `wan`         | text-to-video   | 5s             | Also supports image-to-video       |
+ * | `veo`         | text-to-video   | up to 8s       | Google Veo                         |
+ * | `sora`        | text-to-video   | variable       | OpenAI Sora                        |
+ * | `kling`       | image-to-video  | 5 or 10s       | Requires `image_url` or `first_frame` |
+ * | `bytedance`   | text-to-video   | variable       | ByteDance Seedance                 |
+ * | `infinite_talk`| image-to-video | variable       | Talking-head animation             |
+ */
+export type VideoModel = 'sora' | 'veo' | 'kling' | 'grok' | 'wan' | 'bytedance' | 'infinite_talk';
+
+/**
+ * Supported image generation models.
+ *
+ * | Model                  | Notes                                    |
+ * |------------------------|------------------------------------------|
+ * | `flux-1`               | Flux 1 Schnell / Dev (text-to-image)     |
+ * | `stable-diffusion-xl`  | Stable Diffusion XL                      |
+ * | `nano-banana-pro`      | Batch image generation (up to 14 images) |
+ */
+export type ImageModel = 'flux-1' | 'stable-diffusion-xl' | 'nano-banana-pro' | string;
+
+// ─────────────────────────────────────────────
 // Generation Parameters
 // ─────────────────────────────────────────────
 
 export interface VideoGenerationParams {
-  /** AI model to use e.g. 'kling-v2', 'wan-t2v', 'veo-3.1', 'seedance-v1.5-pro' */
-  model: string;
+  /**
+   * AI model to use.
+   * Must be one of: `'sora'`, `'veo'`, `'kling'`, `'grok'`, `'wan'`, `'bytedance'`, `'infinite_talk'`
+   *
+   * @example
+   * // Text-to-video (grok)
+   * { model: 'grok', prompt: 'A dog running', duration: '5s' }
+   *
+   * @example
+   * // Text-to-video (wan)
+   * { model: 'wan', prompt: 'A sunrise over mountains', duration: 5 }
+   *
+   * @example
+   * // Image-to-video (kling — requires image_url)
+   * { model: 'kling', prompt: 'Animate this', image_url: 'https://...' }
+   */
+  model: VideoModel;
   prompt: string;
-  duration?: number;
+  /**
+   * Duration of the generated video.
+   * - `number`: seconds (e.g. `5`)
+   * - `string`: with suffix (e.g. `"5s"`, `"10s"`) — required by Grok
+   *
+   * Model-specific ranges:
+   * - Grok: 1-15 seconds (use string format: `"5s"`)
+   * - Kling: 5 or 10 seconds
+   * - Veo: up to 8 seconds
+   * - Wan: 5 seconds
+   */
+  duration?: number | string;
   aspect_ratio?: '16:9' | '9:16' | '1:1' | '4:3' | '3:4';
-  /** For image-to-video: URL of first frame */
+  /** For image-to-video: URL of the input image (required for kling, optional for wan) */
   image_url?: string;
   /** For image-to-video: URL of first frame (Kling/Seedance) */
   first_frame?: string;
@@ -38,8 +92,11 @@ export interface VideoGenerationParams {
 }
 
 export interface ImageGenerationParams {
-  /** AI model to use e.g. 'stable-diffusion-xl', 'flux-1', 'nano-banana-pro' */
-  model: string;
+  /**
+   * AI model to use.
+   * @example { model: 'flux-1', prompt: 'A neon city at night' }
+   */
+  model: ImageModel;
   prompt: string;
   /** For img2img: input image URL */
   image?: string;
@@ -101,6 +158,19 @@ export interface PromptRefinementParams {
 }
 
 // ─────────────────────────────────────────────
+// Wait options (for built-in polling)
+// ─────────────────────────────────────────────
+
+export interface WaitOptions {
+  /** If true, polls until COMPLETED or FAILED. Default: false */
+  waitForCompletion?: boolean;
+  /** Timeout in ms. Default: 5 minutes */
+  timeoutMs?: number;
+  /** Poll interval in ms. Default: 3000 */
+  pollIntervalMs?: number;
+}
+
+// ─────────────────────────────────────────────
 // Generation Results
 // ─────────────────────────────────────────────
 
@@ -123,7 +193,7 @@ export interface GenerationResult {
 }
 
 // ─────────────────────────────────────────────
-// Composition / Scene
+// Composition / Scene (optional — for pipeline use)
 // ─────────────────────────────────────────────
 
 export type SceneContext<TInputs extends Record<string, unknown> = Record<string, unknown>> = {
@@ -148,8 +218,12 @@ export interface Scene<TInputs extends Record<string, unknown> = Record<string, 
 export interface CompositionConfig<TInputs extends Record<string, unknown> = Record<string, unknown>> {
   id: string;
   description?: string;
-  /** Zod schema for input validation */
-  inputSchema?: z.ZodType<TInputs>;
+  /**
+   * Optional Zod schema for input validation.
+   * If provided, inputs are validated before running.
+   * If omitted, any inputs object is accepted.
+   */
+  inputSchema?: { safeParse: (data: unknown) => { success: boolean; error?: { message: string }; data?: TInputs } };
   scenes: Scene<TInputs>[];
 }
 

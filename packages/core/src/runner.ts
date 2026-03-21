@@ -97,7 +97,7 @@ export async function render<TInputs extends Record<string, unknown>>(
     const parsed = comp.inputSchema.safeParse(inputs);
     if (!parsed.success) {
       throw new Error(
-        `Invalid inputs for composition "${comp.id}":\n${parsed.error.message}`
+        `Invalid inputs for composition "${comp.id}":\n${parsed.error?.message || 'Validation failed'}`
       );
     }
   }

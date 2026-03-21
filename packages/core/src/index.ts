@@ -18,6 +18,8 @@ export {
 
 export type {
   ZykaConfig,
+  VideoModel,
+  ImageModel,
   VideoGenerationParams,
   ImageGenerationParams,
   TTSParams,
@@ -28,6 +30,7 @@ export type {
   SkinEnhancerParams,
   BehindTheSceneParams,
   PromptRefinementParams,
+  WaitOptions,
   GenerationResult,
   GenerationType,
   GenerationStatus,
