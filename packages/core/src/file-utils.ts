@@ -149,11 +149,16 @@ export async function resolveToUrl(
 
 /**
  * Download a file from a URL to a local path.
+ * Retries on 403/5xx errors (CloudFront propagation delay).
  *
  * @example
  * await downloadFile('https://cdn.example.com/video.mp4', './output.mp4');
  */
-export async function downloadFile(url: string, outputPath: string): Promise<string> {
+export async function downloadFile(
+  url: string,
+  outputPath: string,
+  maxRetries = 3
+): Promise<string> {
   const resolvedOutput = path.resolve(outputPath);
   const dir = path.dirname(resolvedOutput);
 
@@ -162,7 +167,26 @@ export async function downloadFile(url: string, outputPath: string): Promise<str
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  return new Promise<string>((resolve, reject) => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await doDownload(url, resolvedOutput);
+      return resolvedOutput;
+    } catch (err: any) {
+      const isRetryable = err.message?.includes('403') || err.message?.includes('5');
+      if (attempt < maxRetries && isRetryable) {
+        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  return resolvedOutput; // unreachable, but satisfies TS
+}
+
+function doDownload(url: string, outputPath: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const transport = url.startsWith('https:') ? https : http;
 
     const doRequest = (reqUrl: string, redirectCount = 0) => {
@@ -171,7 +195,8 @@ export async function downloadFile(url: string, outputPath: string): Promise<str
         return;
       }
 
-      transport.get(reqUrl, (res) => {
+      const getter = reqUrl.startsWith('https:') ? https : http;
+      getter.get(reqUrl, (res) => {
         // Follow redirects
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           doRequest(res.headers.location, redirectCount + 1);
@@ -179,18 +204,20 @@ export async function downloadFile(url: string, outputPath: string): Promise<str
         }
 
         if (res.statusCode && res.statusCode >= 400) {
+          // Consume response body to free socket
+          res.resume();
           reject(new Error(`Download failed: HTTP ${res.statusCode}`));
           return;
         }
 
-        const fileStream = fs.createWriteStream(resolvedOutput);
+        const fileStream = fs.createWriteStream(outputPath);
         res.pipe(fileStream);
         fileStream.on('finish', () => {
           fileStream.close();
-          resolve(resolvedOutput);
+          resolve();
         });
         fileStream.on('error', (err) => {
-          fs.unlinkSync(resolvedOutput);
+          try { fs.unlinkSync(outputPath); } catch {}
           reject(err);
         });
       }).on('error', reject);
