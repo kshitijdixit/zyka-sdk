@@ -1,0 +1,23 @@
+{
+  "name": "zyka-sdk",
+  "version": "0.1.0",
+  "description": "Programmatic AI media generation SDK for Zyka",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "echo 'No tests yet'"
+  },
+  "keywords": ["zyka", "ai", "video", "sdk", "programmatic"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/node": "^20.12.7"
+  },
+  "dependencies": {
+    "zod": "^3.23.4"
+  }
+}

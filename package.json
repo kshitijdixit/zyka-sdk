@@ -1,0 +1,17 @@
+{
+  "name": "zyka-sdk-monorepo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Programmatic AI media generation SDK — Zyka",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "@types/node": "^20.12.7"
+  }
+}
