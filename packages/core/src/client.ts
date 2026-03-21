@@ -52,11 +52,12 @@ function resolveToken(config?: ZykaConfig): string {
 }
 
 function resolveBaseUrl(config?: ZykaConfig): string {
-  return (
+  const url =
     config?.apiUrl ||
     process.env.ZYKA_API_URL ||
-    'https://api.zyka.ai'
-  );
+    'https://zyka.ai/api-v2';
+  // Strip trailing slash for consistent joining
+  return url.replace(/\/+$/, '');
 }
 
 // ─────────────────────────────────────────────
@@ -73,15 +74,17 @@ interface RequestOptions {
 
 function doRequest<T>(opts: RequestOptions): Promise<T> {
   return new Promise((resolve, reject) => {
-    const url = new URL(opts.path, opts.baseUrl);
-    const isHttps = url.protocol === 'https:';
+    // Join baseUrl + path correctly, preserving base path prefix (e.g. /api-v2)
+    const base = new URL(opts.baseUrl);
+    const joinedPath = base.pathname.replace(/\/+$/, '') + opts.path;
+    const isHttps = base.protocol === 'https:';
     const lib = isHttps ? https : http;
 
     const bodyStr = opts.body ? JSON.stringify(opts.body) : undefined;
     const reqOpts: http.RequestOptions = {
-      hostname: url.hostname,
-      port: url.port || (isHttps ? 443 : 80),
-      path: url.pathname + url.search,
+      hostname: base.hostname,
+      port: base.port || (isHttps ? 443 : 80),
+      path: joinedPath,
       method: opts.method,
       headers: {
         'Content-Type': 'application/json',
@@ -132,20 +135,44 @@ interface ZykaApiResponse<T> {
 // ─────────────────────────────────────────────
 
 function normalizeResult(raw: Record<string, unknown>, type: GenerationType): GenerationResult {
+  // Backend wraps results in nested keys like { video_generation: {...} } or { image_generation: {...} }
+  const nested =
+    (raw.video_generation as Record<string, unknown>) ||
+    (raw.image_generation as Record<string, unknown>) ||
+    (raw.voice as Record<string, unknown>) ||
+    (raw.tts_log as Record<string, unknown>) ||
+    (raw.element as Record<string, unknown>) ||
+    raw;
+
+  // Map backend status strings to SDK status enum
+  const rawStatus = String(nested.status || 'PENDING');
+  const statusMap: Record<string, GenerationResult['status']> = {
+    'Pending': 'PENDING',
+    'Processing': 'PROCESSING',
+    'Completed': 'COMPLETED',
+    'Failed': 'FAILED',
+    'IN_QUEUE': 'PENDING',
+    'IN_PROGRESS': 'PROCESSING',
+    'COMPLETED': 'COMPLETED',
+    'FAILED': 'FAILED',
+  };
+  const status = statusMap[rawStatus] || (rawStatus.toUpperCase() as GenerationResult['status']);
+
   return {
-    id: String(raw.id || raw._id || ''),
+    id: String(nested.id || nested._id || ''),
     type,
-    status: (raw.status as GenerationResult['status']) || 'PENDING',
+    status,
     outputUrl:
-      (raw.output_url as string) ||
-      (raw.video_url as string) ||
-      (raw.image_url as string) ||
-      (raw.audio_url as string) ||
+      (nested.s3_url as string) ||
+      (nested.output_url as string) ||
+      (nested.video_url as string) ||
+      (nested.image_url as string) ||
+      (nested.audio_url as string) ||
       undefined,
-    outputUrls: raw.output_urls as string[] | undefined,
-    metadata: raw as Record<string, unknown>,
-    createdAt: String(raw.createdAt || raw.created_at || new Date().toISOString()),
-    updatedAt: String(raw.updatedAt || raw.updated_at || new Date().toISOString()),
+    outputUrls: nested.output_urls as string[] | undefined,
+    metadata: nested as Record<string, unknown>,
+    createdAt: String(nested.createdAt || nested.created_at || new Date().toISOString()),
+    updatedAt: String(nested.updatedAt || nested.updated_at || new Date().toISOString()),
   };
 }
 
