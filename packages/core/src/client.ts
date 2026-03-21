@@ -22,7 +22,7 @@ import type {
 import { resolveToUrl, downloadFile } from './file-utils';
 
 // ─────────────────────────────────────────────
-// Token resolution
+// Auth resolution
 // ─────────────────────────────────────────────
 
 const ZYKA_CONFIG_PATH = path.join(os.homedir(), '.zyka', 'config.json');
@@ -31,7 +31,7 @@ function loadSavedToken(): string | undefined {
   try {
     if (fs.existsSync(ZYKA_CONFIG_PATH)) {
       const cfg = JSON.parse(fs.readFileSync(ZYKA_CONFIG_PATH, 'utf-8'));
-      return cfg.token;
+      return cfg.apiKey || cfg.token;
     }
   } catch {
     // Ignore
@@ -39,15 +39,22 @@ function loadSavedToken(): string | undefined {
   return undefined;
 }
 
+/**
+ * Resolve authentication credential.
+ * Priority: apiKey → ZYKA_API_KEY → token → ZYKA_API_TOKEN → ~/.zyka/config.json
+ */
 function resolveToken(config?: ZykaConfig): string {
   const token =
+    config?.apiKey ||
+    process.env.ZYKA_API_KEY ||
     config?.token ||
     process.env.ZYKA_API_TOKEN ||
     loadSavedToken();
   if (!token) {
     throw new Error(
-      'Zyka API token not found.\n' +
-      'Set ZYKA_API_TOKEN env var, or run: npx zyka auth login'
+      'Zyka API key not found.\n' +
+      'Set ZYKA_API_KEY env var, pass apiKey in constructor,\n' +
+      'or run: npx zyka auth login'
     );
   }
   return token;

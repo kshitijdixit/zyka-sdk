@@ -104,6 +104,7 @@ export async function render<TInputs extends Record<string, unknown>>(
 
   const resolvedConfig: Required<ZykaConfig> = {
     apiUrl: config?.apiUrl || process.env.ZYKA_API_URL || 'https://api.zyka.ai',
+    apiKey: config?.apiKey || process.env.ZYKA_API_KEY || '',
     token: config?.token || process.env.ZYKA_API_TOKEN || '',
     timeoutMs: config?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     pollIntervalMs: config?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,

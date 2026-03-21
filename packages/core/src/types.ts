@@ -5,7 +5,13 @@
 export interface ZykaConfig {
   /** Zyka API base URL. Defaults to ZYKA_API_URL env var or https://zyka.ai/api-v2 */
   apiUrl?: string;
-  /** JWT Bearer token. Defaults to ZYKA_API_TOKEN env var or ~/.zyka/config.json */
+  /**
+   * Zyka API key (starts with `zk_live_`).
+   * Generate one at: https://zyka.ai/settings/api-keys (or via `POST /api/api-keys`)
+   * Defaults to ZYKA_API_KEY env var.
+   */
+  apiKey?: string;
+  /** JWT Bearer token (legacy — prefer apiKey). Defaults to ZYKA_API_TOKEN env var or ~/.zyka/config.json */
   token?: string;
   /** Max ms to wait for a generation to complete. Default: 5 minutes */
   timeoutMs?: number;

@@ -8,8 +8,7 @@ Programmatic AI media generation SDK. Generate videos, images, TTS, and more via
 const { ZykaClient } = require('zyka-sdk');
 
 const client = new ZykaClient({
-  token: process.env.ZYKA_API_TOKEN,
-  apiUrl: 'https://zyka.ai/api-v2',  // production default
+  apiKey: process.env.ZYKA_API_KEY,  // or pass 'zk_live_...' directly
 });
 
 // Generate a video — waits for completion by default!
@@ -178,9 +177,38 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 ---
 
 ## Auth
-1. Constructor: `new ZykaClient({ token: '...' })`
-2. Environment: `ZYKA_API_TOKEN`
-3. Config file: `~/.zyka/config.json` (set via `zyka auth login`)
+
+### API Key (Recommended)
+Generate an API key from the Zyka dashboard or via API:
+```bash
+# Via API (requires JWT login first)
+curl -X POST https://zyka.ai/api-v2/api/api-keys \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{"name": "My SDK Key"}'
+# Returns: { data: { key: "zk_live_..." } }  ← save this, shown once only
+```
+
+### Using the API Key
+```js
+// Option 1: Constructor
+const client = new ZykaClient({ apiKey: 'zk_live_...' });
+
+// Option 2: Environment variable (preferred for CI/scripts)
+// export ZYKA_API_KEY=zk_live_...
+const client = new ZykaClient();  // auto-detects from env
+```
+
+### Resolution Priority
+1. `config.apiKey` → 2. `ZYKA_API_KEY` env → 3. `config.token` → 4. `ZYKA_API_TOKEN` env → 5. `~/.zyka/config.json`
+
+### Managing API Keys
+```bash
+# List keys
+curl -H "Authorization: Bearer <jwt>" https://zyka.ai/api-v2/api/api-keys
+
+# Revoke a key
+curl -X DELETE -H "Authorization: Bearer <jwt>" https://zyka.ai/api-v2/api/api-keys/<key-id>
+```
 
 ## Build
 ```bash
@@ -202,3 +230,4 @@ packages/core/src/
   index.ts        — Barrel export
 packages/cli/src/ — CLI (auth, init, render, generate commands)
 ```
+
