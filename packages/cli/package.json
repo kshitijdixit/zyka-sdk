@@ -1,6 +1,6 @@
 {
   "name": "zyka",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zyka SDK CLI — programmatic AI media generation",
   "main": "dist/index.js",
   "bin": {
@@ -19,7 +19,7 @@
     "@types/node": "^20.12.7"
   },
   "dependencies": {
-    "zyka-sdk": "^0.1.0",
+    "zyka-sdk": "^0.1.1",
     "commander": "^12.0.0"
   }
 }

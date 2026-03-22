@@ -157,7 +157,7 @@ export async function resolveToUrl(
 export async function downloadFile(
   url: string,
   outputPath: string,
-  maxRetries = 3
+  maxRetries = 5
 ): Promise<string> {
   const resolvedOutput = path.resolve(outputPath);
   const dir = path.dirname(resolvedOutput);
@@ -167,14 +167,18 @@ export async function downloadFile(
     fs.mkdirSync(dir, { recursive: true });
   }
 
+  // Initial delay — CloudFront CDN needs time to propagate new files
+  await new Promise(r => setTimeout(r, 2000));
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       await doDownload(url, resolvedOutput);
       return resolvedOutput;
     } catch (err: any) {
-      const isRetryable = err.message?.includes('403') || err.message?.includes('5');
+      const msg = err.message || '';
+      const isRetryable = msg.includes('403') || /\b5\d{2}\b/.test(msg);
       if (attempt < maxRetries && isRetryable) {
-        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s
+        const delay = Math.pow(2, attempt + 1) * 1000; // 2s, 4s, 8s, 16s, 32s
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
