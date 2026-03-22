@@ -11,7 +11,10 @@
     "clean": "pnpm -r clean"
   },
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "@types/node": "^20.12.7"
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
   }
 }

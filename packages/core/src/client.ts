@@ -3,6 +3,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import * as crypto from 'crypto';
 import type {
   ZykaConfig,
   VideoGenerationParams,
@@ -73,7 +74,10 @@ interface RequestOptions {
 
 function doRequest<T>(opts: RequestOptions): Promise<T> {
   return new Promise((resolve, reject) => {
-    const url = new URL(opts.path, opts.baseUrl);
+    // Join baseUrl + path, preserving any path prefix in baseUrl (e.g. /api-v2)
+    const base = opts.baseUrl.replace(/\/+$/, '');
+    const rel = opts.path.replace(/^\/+/, '');
+    const url = new URL(`${base}/${rel}`);
     const isHttps = url.protocol === 'https:';
     const lib = isHttps ? https : http;
 
@@ -131,21 +135,53 @@ interface ZykaApiResponse<T> {
 // Normalize raw API response → GenerationResult
 // ─────────────────────────────────────────────
 
+// Map generation type → nested key in API response
+const TYPE_RESPONSE_KEY: Record<string, string> = {
+  video: 'video_generation',
+  image: 'image_generation',
+  tts: 'tts',
+  voice: 'voice',
+  upscale: 'upscale',
+  'face-swap': 'face_swap',
+  'virtual-try-on': 'virtual_try_on',
+  'outfit-swap': 'outfit_swap',
+  'skin-enhancer': 'skin_enhancer',
+  'behind-the-scene': 'behind_the_scene',
+};
+
+// Map API status strings to SDK-normalized status
+function normalizeStatus(status: unknown): GenerationResult['status'] {
+  const s = String(status || '').toLowerCase();
+  if (s === 'completed' || s === 'complete' || s === 'success') return 'COMPLETED';
+  if (s === 'failed' || s === 'error') return 'FAILED';
+  if (s === 'processing' || s === 'in_progress' || s === 'running') return 'PROCESSING';
+  return 'PENDING';
+}
+
 function normalizeResult(raw: Record<string, unknown>, type: GenerationType): GenerationResult {
+  // Unwrap nested response: { image_generation: { ... } } → inner object
+  const key = TYPE_RESPONSE_KEY[type];
+  const inner = (key && raw[key] ? raw[key] : raw) as Record<string, unknown>;
+
   return {
-    id: String(raw.id || raw._id || ''),
+    id: String(inner.id || inner._id || ''),
     type,
-    status: (raw.status as GenerationResult['status']) || 'PENDING',
+    status: normalizeStatus(inner.status),
     outputUrl:
-      (raw.output_url as string) ||
-      (raw.video_url as string) ||
-      (raw.image_url as string) ||
-      (raw.audio_url as string) ||
+      (inner.s3_url as string) ||
+      (inner.output_url as string) ||
+      (inner.video_url as string) ||
+      (inner.image_url as string) ||
+      (inner.audio_url as string) ||
       undefined,
-    outputUrls: raw.output_urls as string[] | undefined,
+    outputUrls: inner.output_urls as string[] | undefined,
     metadata: raw as Record<string, unknown>,
-    createdAt: String(raw.createdAt || raw.created_at || new Date().toISOString()),
-    updatedAt: String(raw.updatedAt || raw.updated_at || new Date().toISOString()),
+    createdAt: inner.created_at
+      ? new Date(Number(inner.created_at)).toISOString()
+      : String(inner.createdAt || new Date().toISOString()),
+    updatedAt: inner.updated_at
+      ? new Date(Number(inner.updated_at)).toISOString()
+      : String(inner.updatedAt || new Date().toISOString()),
   };
 }
 
@@ -168,7 +204,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/video-generation',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -201,7 +237,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/image-generation',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -234,7 +270,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/voice-clone/tts',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -257,7 +293,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/upscale/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -268,7 +304,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/face-swap/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -279,7 +315,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/virtual-try-on/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -290,7 +326,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/outfit-swap/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -301,7 +337,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/skin-enhancer/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });
@@ -312,7 +348,7 @@ export class ZykaClient {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
       path: '/api/apps/behind-the-scene/create',
-      body: params as Record<string, unknown>,
+      body: { id: crypto.randomUUID(), ...params } as Record<string, unknown>,
       token: this.token,
       baseUrl: this.baseUrl,
     });

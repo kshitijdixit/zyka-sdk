@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../dist-examples",
+    "rootDir": "..",
+    "baseUrl": "..",
+    "paths": {
+      "zyka-sdk": ["packages/core/src/index"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "references": []
+}

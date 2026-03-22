@@ -1,7 +1,10 @@
 node_modules/
 dist/
+dist-examples/
 .env
 .env.local
 *.log
 .DS_Store
 .zyka/
+.vscode/
+test-*.js
