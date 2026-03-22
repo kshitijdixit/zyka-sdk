@@ -1,5 +1,7 @@
+---
 name: zyka-ai-media
 description: Generate AI videos, images, and voice using the Zyka SDK. Use this when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN), images (DALL·E, GPT Image, Flux, Nano Banana), text-to-speech (ElevenLabs, Chatterbox), or talking head videos. Supports local file uploads, auto-waiting, and auto-download.
+---
 
 # Zyka SDK — AI Media Generation
 
