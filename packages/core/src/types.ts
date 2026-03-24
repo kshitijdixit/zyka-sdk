@@ -35,7 +35,7 @@ export interface ZykaConfig {
  * | `wan`           | text/image-to-video | Alibaba WAN                               |
  * | `infinite_talk` | image-to-video    | Talking-head animation, requires audio      |
  */
-export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk';
+export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok';
 
 // Sub-model types for video
 export type SoraSubModel = 'sora-2' | 'sora-2-pro';
@@ -52,7 +52,8 @@ export type KlingVideoSubModel =
   | 'multi-image-to-video' | 'kling-video-o1';
 export type BytedanceSubModel = 'Seedance V1.5 Pro' | 'OmniHuman' | 'OmniHuman v1.5';
 export type WanSubModel = 'wan-2-6-t2v' | 'wan-2-6-i2v' | 'wan-2-5-i2v' | 'wan-v2-2-animate-replace' | 'wan-v2-2-animate-move';
-export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | string;
+export type GrokVideoSubModel = 'grok-imagine-video';
+export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | GrokVideoSubModel | string;
 
 /**
  * Video generation parameters.
@@ -222,6 +223,33 @@ export interface VideoGenerationParams {
   /** Enable safety checker */
   enable_safety_checker?: boolean;
 
+  // ── Common metadata ──
+
+  /** Title for the generation job */
+  title?: string;
+  /** Description for the generation job */
+  description?: string;
+
+  // ── Kling Omni-Video ──
+
+  /** Kling Omni-Video reference videos (max 1) */
+  video_list?: Array<{ video_url: string; refer_type?: 'feature' | 'base'; keep_original_sound?: 'yes' | 'no' }>;
+  /** Kling Omni-Video element references */
+  element_list?: Array<{ element_id: number }>;
+  /** Kling O3 reference image URLs */
+  image_urls?: string[];
+  /** Video URL for V2V (Infinite Talk, WAN animate, Kling motion-control) */
+  video_url?: string;
+
+  // ── Callbacks ──
+
+  /** Callback URL for status change notifications */
+  callback_url?: string;
+  /** Custom task ID (max 255 chars, unique per user) */
+  external_task_id?: string;
+  /** Watermark settings */
+  watermark_info?: { enabled: boolean };
+
   /** Any extra model-specific params */
   [key: string]: unknown;
 }
@@ -258,6 +286,7 @@ export type ImageModel =
   | 'gpt_image_1' | 'gpt_image_1_mini' | 'gpt_image_1_5'
   | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5'
   | 'kling' | 'z_image_turbo'
+  | 'zyka_helion' | 'grok_imagine' | 'qwen_image_2_pro'
   | string;
 
 export type ImageSubModel =
@@ -271,6 +300,7 @@ export type ImageSubModel =
   | 'omni-image' | 'kling-image-o1' | 'multi-image-to-image'
   | 'kling-image-v3' | 'kling-image-v3-text-to-image'
   | 'z-image-turbo'
+  | 'nano-banana-2' | 'zyka-helion' | 'grok-imagine-image' | 'qwen-image-2-pro'
   | string;
 
 /**
@@ -347,6 +377,45 @@ export interface ImageGenerationParams {
   /** GPT Image output format: `'png'`, `'jpeg'`, `'webp'` */
   output_format?: string;
 
+  // ── Additional fields ──
+
+  /** Title for the generation job */
+  title?: string;
+  /** Description for the generation job */
+  description?: string;
+  /** Negative prompt (what to avoid) */
+  negative_prompt?: string;
+  /** Guidance scale (Lucid Origin 0-10, Phoenix 2-10, SD) */
+  guidance?: number;
+  /** Number of diffusion steps */
+  steps?: number;
+  /** img2img transformation strength (0-1) */
+  strength?: number;
+  /** DALL-E 3 style: `'vivid'`, `'natural'` */
+  style?: string;
+  /** GPT Image moderation */
+  moderation?: string;
+  /** GPT Image output compression (0-100) */
+  output_compression?: number;
+  /** Number of images to generate (Kling: 1-9) */
+  n?: number;
+  /** Kling v1.5 image reference type */
+  image_reference?: 'subject' | 'face';
+  /** Kling v1.5 image fidelity (0-1) */
+  image_fidelity?: number;
+  /** Kling v1.5 human fidelity (0-1) */
+  human_fidelity?: number;
+  /** Kling multi-image-to-image subject images (1-4) */
+  subject_image_list?: string[];
+  /** Kling multi-image-to-image scene image */
+  scene_image?: string;
+  /** Kling multi-image-to-image style image */
+  style_image?: string;
+  /** Kling Omni-Image element references */
+  element_list?: Array<{ element_id: number }>;
+  /** Kling Image V3 face control elements */
+  elements?: Array<{ frontal_image_url?: string; reference_image_urls?: string[] }>;
+
   /** Any extra model-specific params */
   [key: string]: unknown;
 }
@@ -367,7 +436,7 @@ export interface ImageGenerationParams {
  * | `minimax`     | Preset voices, speech 2.8 turbo              |
  * | `moss-tts`    | RunPod-based TTS                             |
  */
-export type TTSProvider = 'elevenlabs' | 'qwen3' | 'chatterbox' | 'voxcpm' | 'minimax' | 'moss-tts';
+export type TTSProvider = 'elevenlabs' | 'qwen3' | 'chatterbox' | 'voxcpm' | 'minimax' | 'moss-tts' | 'fish-audio';
 
 export interface TTSParams {
   /** TTS provider. Default: `'elevenlabs'` */
@@ -432,6 +501,18 @@ export interface TTSParams {
   /** MOSS-TTS voice strength (0-1, default 1.0) */
   voice_strength?: number;
 
+  // ── VoxCPM-specific ──
+  /** VoxCPM transcript of reference audio */
+  prompt_text?: string;
+
+  // ── Qwen3 additional ──
+  /** Qwen3 faster but lower quality mode */
+  use_xvector_only?: boolean;
+
+  // ── Fish Audio-specific ──
+  /** Fish Audio model/voice ID */
+  reference_id?: string;
+
   /** Any extra provider-specific params */
   [key: string]: unknown;
 }
@@ -441,45 +522,225 @@ export interface TTSParams {
 // ═══════════════════════════════════════════════
 
 export interface UpscaleParams {
-  image_url: string;
-  /** Upscale resolution: `'1k'`, `'2k'`, `'4k'` */
+  /** URL of the image to upscale */
+  image: string;
+  /** Output resolution: '1k', '2k', '4k' (default: '2k') */
   resolution?: '1k' | '2k' | '4k';
-  scale?: 2 | 4;
   [key: string]: unknown;
 }
 
 export interface FaceSwapParams {
-  source_image_url: string;
-  target_image_url: string;
+  /** Type of output: 'image' or 'video' */
+  type: 'image' | 'video';
+  /** URL of the target media (image or video) */
+  url: string;
+  /** URL of the face image to swap in */
+  face_image: string;
+  /** Optional custom prompt */
+  prompt?: string;
   [key: string]: unknown;
 }
 
 export interface VirtualTryOnParams {
-  model_image_url: string;
-  garment_image_url: string;
+  /** URL of the person's image */
+  human_image: string;
+  /** URL of the clothing image */
+  cloth_image: string;
   [key: string]: unknown;
 }
 
 export interface OutfitSwapParams {
-  model_image_url: string;
-  garment_image_url: string;
+  /** URL of your own image (face/body preserved) */
+  user_image: string;
+  /** URL of the character image (outfit extracted from here) */
+  character_image: string;
   [key: string]: unknown;
 }
 
 export interface SkinEnhancerParams {
-  image_url: string;
+  /** URL of the image to enhance */
+  image: string;
+  /** Skin type */
+  type?: 'perfect_skin' | 'realistic_skin' | 'imperfect_skin';
   [key: string]: unknown;
 }
 
 export interface BehindTheSceneParams {
+  /** URL of the reference image */
+  image: string;
+  /** Type of output: 'image' or 'video' */
+  type: 'image' | 'video';
+  [key: string]: unknown;
+}
+
+export interface AnglesParams {
+  /** URL of the source image */
+  image: string;
+  /** Camera angle - preset string or {azimuth, elevation} / {rotation, tilt} */
+  angle: string | { azimuth?: number; elevation?: number; rotation?: number; tilt?: number };
+  [key: string]: unknown;
+}
+
+export interface NineShortsParams {
+  /** URL of the source image */
+  image: string;
+  [key: string]: unknown;
+}
+
+export interface ZoomsParams {
+  /** URL of the source image */
+  image: string;
+  [key: string]: unknown;
+}
+
+export interface StoryGeneratorParams {
+  /** URL of the character image */
+  image: string;
+  [key: string]: unknown;
+}
+
+export interface CaptionGeneratorParams {
+  /** URL of the video to process */
+  url: string;
+  /** Title for the video */
+  title?: string;
+  /** Language code (e.g. 'en') */
+  language?: string;
+  /** Caption style customization */
+  caption_style?: {
+    font_family?: string;
+    font_size?: number;
+    font_color?: string;
+    bold?: boolean;
+    italic?: boolean;
+    background_color?: string;
+    stroke_color?: string;
+    stroke_width?: number;
+  };
+  [key: string]: unknown;
+}
+
+export interface VideoToScriptParams {
+  /** URL of the video to process */
+  url: string;
+  /** Title for the job */
+  title?: string;
+  /** Language code (e.g. 'en') */
+  language?: string;
+  /** Script style */
+  script_style?: 'general' | 'screenplay' | 'blog_post' | 'social_media' | 'documentary';
+  [key: string]: unknown;
+}
+
+export interface VideoCleanerParams {
+  /** URL of the video to process */
+  url: string;
+  /** Title for the job */
+  title?: string;
+  /** Language code (e.g. 'en') */
+  language?: string;
+  [key: string]: unknown;
+}
+
+export interface VideoUpscalerParams {
+  /** URL of the video to upscale */
   video_url: string;
-  prompt: string;
+  /** Target resolution */
+  target_resolution?: '1080p' | '2k' | '4k';
+  /** Target FPS */
+  target_fps?: '30fps' | '60fps';
+  /** Title for the job */
+  title?: string;
+  [key: string]: unknown;
+}
+
+export interface VideoDubbingParams {
+  /** URL of the video to dub */
+  video_url: string;
+  /** Target language (full name e.g. 'Hindi (India)') */
+  output_language: string;
+  /** Only translate audio, keep original video */
+  translate_audio_only?: boolean;
+  /** Title for the job */
+  title?: string;
+  /** Mode: 'speed' or 'precision' */
+  mode?: 'speed' | 'precision';
+  /** Enable caption overlay */
+  enable_caption?: boolean;
+  /** Enable speech enhancement */
+  enable_speech_enhancement?: boolean;
+  [key: string]: unknown;
+}
+
+export interface ShortVideoCreatorParams {
+  /** URL of the video (min 60s) */
+  url: string;
+  /** Clip duration: 5, 15, 30, 45, or 'auto' */
+  clip_duration_sec: number | 'auto';
+  /** Title for the job */
+  title?: string;
+  /** Language code */
+  language?: string;
+  /** Aspect ratio */
+  aspect_ratio?: 'auto' | '9:16' | '1:1' | '16:9';
+  /** Max clips: 1-20 or 'auto' */
+  max_clips?: number | 'auto';
+  [key: string]: unknown;
+}
+
+export interface BrollParams {
+  /** URL of the video (min 10s) */
+  url: string;
+  /** B-roll duration per insertion: 2-10 or 'auto' */
+  broll_duration_sec?: number | 'auto';
+  /** Max insertions: 1-20 or 'auto' */
+  max_insertions?: number | 'auto';
+  /** Aspect ratio */
+  aspect_ratio?: 'auto' | '9:16' | '1:1' | '16:9';
+  /** Title for the job */
+  title?: string;
+  /** Language code */
+  language?: string;
+  [key: string]: unknown;
+}
+
+export interface YouTubeDownloaderParams {
+  /** YouTube video URL */
+  url: string;
+  /** Quality */
+  quality?: '360p' | '480p' | '720p' | '1080p';
+  /** Format */
+  format?: 'mp4' | 'mp3';
   [key: string]: unknown;
 }
 
 export interface PromptRefinementParams {
-  prompt: string;
-  type?: 'video' | 'image';
+  /** The original prompt to refine */
+  user_input: string;
+  /** What to avoid */
+  negative_prompt?: string;
+  /** Generation type */
+  generate_type?: 'video' | 'image';
+  /** Aspect ratio */
+  aspect_ratio?: string;
+  /** Enhancement mode */
+  enhance_mode?: 'balanced' | 'cinematic' | 'ultra_realism' | 'viral_social' | 'commercial_ad' | 'artistic';
+  /** Target model name */
+  model?: string;
+  /** Quality level */
+  quality?: string;
+  /** Camera angle/movement */
+  camera?: string;
+  /** Lighting style */
+  lighting?: string;
+  /** Visual style */
+  style?: string;
+  /** Mood/atmosphere */
+  mood?: string;
+  /** Color grading */
+  color_grading?: string;
+  /** Target resolution */
+  resolution?: string;
   [key: string]: unknown;
 }
 
@@ -506,7 +767,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

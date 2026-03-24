@@ -64,13 +64,21 @@ const generate = program.command('generate').description('Generate media (image,
 generate
   .command('video')
   .description('Generate a video from a text prompt')
-  .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk)')
+  .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk, grok)')
   .requiredOption('-p, --prompt <prompt>', 'Text prompt')
-  .option('-s, --sub-model <sub_model>', 'Model variant (e.g. sora-2, veo-3.0-generate-001)')
+  .option('-s, --sub-model <sub_model>', 'Model variant (e.g. sora-2, veo-3.1-generate-001)')
   .option('-d, --duration <duration>', 'Duration in seconds')
   .option('-a, --aspect-ratio <ratio>', 'Aspect ratio (16:9, 9:16, 1:1)')
   .option('--image <path>', 'Image URL or local path (for image-to-video)')
   .option('--audio <path>', 'Audio URL or local path (for infinite_talk, wan)')
+  .option('--video <path>', 'Video URL or local path (for V2V)')
+  .option('--negative-prompt <text>', 'Negative prompt (what to avoid)')
+  .option('--mode <mode>', 'Generation mode: std or pro (Kling)')
+  .option('--resolution <res>', 'Resolution: 480p, 720p, 1080p')
+  .option('--first-frame <path>', 'First frame image path or URL')
+  .option('--last-frame <path>', 'Last frame image path or URL')
+  .option('--size <size>', 'Output size (e.g. 1280x720, 720p)')
+  .option('--title <title>', 'Title for the generation job')
   .option('-o, --output <path>', 'Download result to this file path')
   .option('--no-wait', 'Return immediately without waiting for completion')
   .action(async (opts: Record<string, string | boolean>) => {
@@ -86,6 +94,14 @@ generate
     if (opts.aspectRatio) params.aspect_ratio = opts.aspectRatio;
     if (opts.image) params.image_url = opts.image;
     if (opts.audio) params.audio_url = opts.audio;
+    if (opts.video) params.video_url = opts.video;
+    if (opts.negativePrompt) params.negative_prompt = opts.negativePrompt;
+    if (opts.mode) params.mode = opts.mode;
+    if (opts.resolution) params.resolution = opts.resolution;
+    if (opts.firstFrame) params.first_frame = opts.firstFrame;
+    if (opts.lastFrame) params.last_frame = opts.lastFrame;
+    if (opts.size) params.size = opts.size;
+    if (opts.title) params.title = opts.title;
 
     console.log(`\n🎬 Generating video with model: ${params.model}...`);
     try {
@@ -109,11 +125,18 @@ generate
 generate
   .command('image')
   .description('Generate an image from a text prompt')
-  .requiredOption('-m, --model <model>', 'Image model (nano_banana, dall_e_3, gpt_image_1, flux_1_schnell, etc.)')
+  .requiredOption('-m, --model <model>', 'Image model (nano_banana, dall_e_3, gpt_image_1, flux_1_schnell, grok_imagine, zyka_helion, etc.)')
   .requiredOption('-p, --prompt <prompt>', 'Text prompt')
-  .option('-s, --sub-model <sub_model>', 'Model variant (e.g. nano-banana-pro)')
+  .option('-s, --sub-model <sub_model>', 'Model variant (e.g. nano-banana-pro, nano-banana-2)')
   .option('--size <size>', 'Output size (e.g. 1024x1024)')
   .option('--image <path>', 'Input image URL or local path (for img2img)')
+  .option('--negative-prompt <text>', 'Negative prompt (what to avoid)')
+  .option('--resolution <res>', 'Resolution: 1K, 2K, 4K (Nano Banana Pro/2)')
+  .option('--quality <quality>', 'Quality: standard, hd, auto, low, medium, high')
+  .option('--background <bg>', 'Background: transparent, opaque, auto (GPT Image)')
+  .option('--style <style>', 'Style: vivid, natural (DALL-E 3)')
+  .option('-n, --count <n>', 'Number of images to generate')
+  .option('--title <title>', 'Title for the generation job')
   .option('-o, --output <path>', 'Download result to this file path')
   .option('--no-wait', 'Return immediately without waiting for completion')
   .action(async (opts: Record<string, string | boolean>) => {
@@ -127,6 +150,13 @@ generate
     if (opts.subModel) params.sub_model = opts.subModel;
     if (opts.size) params.size = opts.size;
     if (opts.image) params.image = opts.image;
+    if (opts.negativePrompt) params.negative_prompt = opts.negativePrompt;
+    if (opts.resolution) params.resolution = opts.resolution;
+    if (opts.quality) params.quality = opts.quality;
+    if (opts.background) params.background = opts.background;
+    if (opts.style) params.style = opts.style;
+    if (opts.count) params.n = parseInt(opts.count as string, 10);
+    if (opts.title) params.title = opts.title;
 
     console.log(`\n🖼️  Generating image with model: ${params.model}...`);
     try {

@@ -14,6 +14,18 @@ import type {
   OutfitSwapParams,
   SkinEnhancerParams,
   BehindTheSceneParams,
+  AnglesParams,
+  NineShortsParams,
+  ZoomsParams,
+  StoryGeneratorParams,
+  CaptionGeneratorParams,
+  VideoToScriptParams,
+  VideoCleanerParams,
+  VideoUpscalerParams,
+  VideoDubbingParams,
+  ShortVideoCreatorParams,
+  BrollParams,
+  YouTubeDownloaderParams,
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
@@ -168,7 +180,7 @@ function normalizeResult(raw: Record<string, unknown>, type: GenerationType): Ge
   const status = statusMap[rawStatus] || (rawStatus.toUpperCase() as GenerationResult['status']);
 
   return {
-    id: String(nested.id || nested._id || ''),
+    id: String(nested.id || nested.voice_tts_log_id || nested.my_voice_id || nested._id || ''),
     type,
     status,
     outputUrl:
@@ -280,6 +292,7 @@ export class ZykaClient {
     resolved.first_frame = await this.resolveFile(params.first_frame);
     resolved.last_frame = await this.resolveFile(params.last_frame);
     resolved.inputReference = await this.resolveFile(params.inputReference);
+    resolved.video_url = await this.resolveFile(params.video_url);
 
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
@@ -427,6 +440,34 @@ export class ZykaClient {
     return normalizeResult(res.data || {}, 'tts');
   }
 
+  // ── App status poller ───────────────────
+
+  private async pollAppStatus(
+    statusPath: string,
+    id: string,
+    type: GenerationType,
+    opts?: WaitOptions
+  ): Promise<GenerationResult> {
+    const timeout = opts?.timeoutMs ?? 10 * 60 * 1000;
+    const interval = opts?.pollIntervalMs ?? 5000;
+    const deadline = Date.now() + timeout;
+
+    while (Date.now() < deadline) {
+      const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+        method: 'GET',
+        path: `${statusPath}/${id}`,
+        token: this.token,
+        baseUrl: this.baseUrl,
+      });
+      const result = normalizeResult(res.data || {}, type);
+      if (result.status === 'COMPLETED') return this.maybeDownload(result, opts);
+      if (result.status === 'FAILED') throw new Error(`App job ${id} (${type}) failed.`);
+      await new Promise(r => setTimeout(r, interval));
+    }
+
+    throw new Error(`Timed out waiting for ${type} job "${id}"`);
+  }
+
   // ── Apps ─────────────────────────────────
 
   async createUpscale(params: UpscaleParams): Promise<GenerationResult> {
@@ -493,6 +534,136 @@ export class ZykaClient {
       baseUrl: this.baseUrl,
     });
     return normalizeResult(res.data || {}, 'behind-the-scene');
+  }
+
+  // ── New Apps ────────────────────────────
+
+  async createAngles(params: AnglesParams): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/angles/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'angles');
+  }
+
+  async createNineShorts(params: NineShortsParams): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/nine-shorts/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'nine-shorts');
+  }
+
+  async createZooms(params: ZoomsParams): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/zooms/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'zooms');
+  }
+
+  async createStoryGenerator(params: StoryGeneratorParams): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/story-generator/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'story-generator');
+  }
+
+  async createCaptionGenerator(params: CaptionGeneratorParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/caption-generator/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'caption-generator');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/caption-generator/status', result.id, 'caption-generator', options);
+    }
+    return result;
+  }
+
+  async createVideoToScript(params: VideoToScriptParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/video-to-script/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'video-to-script');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/video-to-script/status', result.id, 'video-to-script', options);
+    }
+    return result;
+  }
+
+  async createVideoCleaner(params: VideoCleanerParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/video-cleaner/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'video-cleaner');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/video-cleaner/status', result.id, 'video-cleaner', options);
+    }
+    return result;
+  }
+
+  async createVideoUpscaler(params: VideoUpscalerParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/video-upscaler/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'video-upscaler');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/video-upscaler/status', result.id, 'video-upscaler', options);
+    }
+    return result;
+  }
+
+  async createVideoDubbing(params: VideoDubbingParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/video-dubbing/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'video-dubbing');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/video-dubbing/status', result.id, 'video-dubbing', options);
+    }
+    return result;
+  }
+
+  async createShortVideoCreator(params: ShortVideoCreatorParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/short-video-creator/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'short-video-creator');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/short-video-creator/status', result.id, 'short-video-creator', options);
+    }
+    return result;
+  }
+
+  async createBroll(params: BrollParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/broll/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'broll');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/broll/status', result.id, 'broll', options);
+    }
+    return result;
+  }
+
+  async createYouTubeDownloader(params: YouTubeDownloaderParams, options?: WaitOptions): Promise<GenerationResult> {
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/youtube-downloader/create',
+      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'youtube-downloader');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/youtube-downloader/status', result.id, 'youtube-downloader', options);
+    }
+    return result;
   }
 
   // ── Prompt Refinement ────────────────────
