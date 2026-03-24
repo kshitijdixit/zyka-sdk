@@ -75,7 +75,7 @@ await client.createImage({ model: 'nano_banana', image: asset('photo.png'), prom
 
 ## Video Models
 
-The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`
+The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`
 
 ### sora (OpenAI Sora)
 ```js
@@ -127,13 +127,23 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 - **image_url**: Face image (required) — local path or URL
 - **audio_url**: Speech audio (required) — local path or URL
 
+### grok (xAI Grok Imagine Video)
+```js
+{ model: 'grok', sub_model: 'grok-imagine-video', prompt: '...', duration: '6', aspect_ratio: '16:9' }
+```
+- **sub_model**: `'grok-imagine-video'` (default)
+- **duration**: `1`–`15` (default `6`)
+- **aspect_ratio**: `'auto'`, `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:2'`, etc.
+- **resolution**: `'480p'`, `'720p'`
+- **image_url**: Optional — if provided, switches to Image-to-Video mode
+
 ---
 
 ## Image Models
 
 | Model | Notes |
 |---|---|
-| `nano_banana` | Sub-models: `nano-banana-1` (default), `nano-banana-pro` |
+| `nano_banana` | Sub-models: `nano-banana-1` (default), `nano-banana-pro`, `nano-banana-2` |
 | `flux_1_schnell` | Fast generation |
 | `flux_2_dev` | Flux 2 Dev |
 | `dall_e_2` | Sizes: 256², 512², 1024² |
@@ -141,12 +151,15 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 | `gpt_image_1` | `background: 'transparent'` supported |
 | `gpt_image_1_mini` | Cheaper variant |
 | `gpt_image_1_5` | Latest |
-| `kling` | Sub-models: `kling-v1` thru `kling-image-v3` |
+| `kling` | Sub-models: `kling-v1` thru `kling-image-v3`, `omni-image` |
 | `stable_diffusion_xl_base_1_0` | SD XL |
 | `stable_diffusion_v1_5_img2img` | Requires `image` |
 | `lucid_origin` | Leonardo |
 | `phoenix_1_0` | Phoenix |
 | `z_image_turbo` | Fast |
+| `zyka_helion` | Fast Zyka-native model |
+| `grok_imagine` | xAI Grok Imagine Image |
+| `qwen_image_2_pro` | Qwen Image 2 Pro (Chinese/English) |
 
 ---
 
@@ -160,6 +173,32 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 | `voxcpm` | Voice cloning |
 | `minimax` | 17 preset voices |
 | `moss-tts` | RunPod-based |
+| `fish-audio` | Fish Audio IVC (instant voice cloning) |
+
+---
+
+## Apps (AI Tools)
+
+| Method | Description |
+|---|---|
+| `client.createUpscale({ image, resolution })` | Upscale image to 1k/2k/4k |
+| `client.createFaceSwap({ type, url, face_image })` | Face swap (image or video) |
+| `client.createVirtualTryOn({ human_image, cloth_image })` | Virtual clothing try-on |
+| `client.createOutfitSwap({ user_image, character_image })` | Swap outfit from character |
+| `client.createSkinEnhancer({ image, type })` | Skin enhancement (perfect/realistic/imperfect) |
+| `client.createBehindTheScene({ image, type })` | Behind-the-scene film effect |
+| `client.createAngles({ image, angle })` | Generate image from new camera angle |
+| `client.createNineShorts({ image })` | 9 unique shots from different angles |
+| `client.createZooms({ image })` | 9 progressive zoom levels |
+| `client.createStoryGenerator({ image })` | 3x3 cinematic story grid |
+| `client.createCaptionGenerator({ url })` | Auto-caption a video |
+| `client.createVideoToScript({ url })` | Extract script from video |
+| `client.createVideoCleaner({ url })` | Remove filler words from video |
+| `client.createVideoUpscaler({ video_url })` | Upscale video to 1080p/2k/4k |
+| `client.createVideoDubbing({ video_url, output_language })` | Dub video to another language |
+| `client.createShortVideoCreator({ url, clip_duration_sec })` | Extract viral clips |
+| `client.createBroll({ url })` | Insert B-roll stock footage |
+| `client.createYouTubeDownloader({ url })` | Download YouTube video |
 
 ---
 
@@ -170,6 +209,24 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 | `client.createVideo(params, opts?)` | ✅ default | Video generation |
 | `client.createImage(params, opts?)` | ✅ default | Image generation |
 | `client.createTTS(params, opts?)` | ✅ default | Text-to-speech |
+| `client.createUpscale(params)` | ✅ sync | Image upscaling |
+| `client.createFaceSwap(params)` | ✅ sync | Face swap |
+| `client.createVirtualTryOn(params)` | ✅ sync | Virtual try-on |
+| `client.createOutfitSwap(params)` | ✅ sync | Outfit swap |
+| `client.createSkinEnhancer(params)` | ✅ sync | Skin enhancement |
+| `client.createBehindTheScene(params)` | ✅ sync | Behind-the-scene |
+| `client.createAngles(params)` | ✅ sync | Camera angle change |
+| `client.createNineShorts(params)` | ✅ sync | 9 angle variations |
+| `client.createZooms(params)` | ✅ sync | 9 zoom levels |
+| `client.createStoryGenerator(params)` | ✅ sync | Cinematic story grid |
+| `client.createCaptionGenerator(params, opts?)` | ✅ default | Auto-caption video |
+| `client.createVideoToScript(params, opts?)` | ✅ default | Video to script |
+| `client.createVideoCleaner(params, opts?)` | ✅ default | Remove fillers |
+| `client.createVideoUpscaler(params, opts?)` | ✅ default | Upscale video |
+| `client.createVideoDubbing(params, opts?)` | ✅ default | Dub/translate video |
+| `client.createShortVideoCreator(params, opts?)` | ✅ default | Extract viral clips |
+| `client.createBroll(params, opts?)` | ✅ default | Insert B-roll |
+| `client.createYouTubeDownloader(params, opts?)` | ✅ default | Download YouTube |
 | `client.pollUntilComplete(id, type)` | — | Manual polling |
 
 **WaitOptions**: `{ waitForCompletion?: boolean, output?: string, timeoutMs?: number }`

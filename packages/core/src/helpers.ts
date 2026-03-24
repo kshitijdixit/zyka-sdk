@@ -100,5 +100,5 @@ export async function refinePrompt(
   config?: ZykaConfig
 ): Promise<string> {
   const client = new ZykaClient(config);
-  return client.refinePrompt({ prompt, type });
+  return client.refinePrompt({ user_input: prompt, generate_type: type });
 }
