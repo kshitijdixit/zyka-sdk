@@ -1,12 +1,15 @@
 {
   "name": "zyka",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Zyka SDK CLI — programmatic AI media generation",
   "main": "dist/index.js",
   "bin": {
     "zyka": "dist/index.js"
   },
-  "files": ["dist", "templates"],
+  "files": [
+    "dist",
+    "templates"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -19,7 +22,7 @@
     "@types/node": "^20.12.7"
   },
   "dependencies": {
-    "zyka-sdk": "^0.1.1",
+    "zyka-sdk": "workspace:*",
     "commander": "^12.0.0"
   }
 }

@@ -21,8 +21,8 @@ importers:
         specifier: ^12.0.0
         version: 12.1.0
       zyka-sdk:
-        specifier: ^0.1.1
-        version: 0.1.1(zod@3.25.76)
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.12.7
@@ -64,15 +64,6 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zyka-sdk@0.1.1:
-    resolution: {integrity: sha512-Zi90yS42h17vqmAjehw50PKd3s1KMTE7oFascOhum/NEC6aWvRG6xM9CHOJLaRW6PQ7pd8P8FGu7r6rkaBrwPQ==}
-    deprecated: This package has been merged into 'zyka'. Install 'zyka' instead.
-    peerDependencies:
-      zod: ^3.20.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
-
 snapshots:
 
   '@types/node@20.19.37':
@@ -86,7 +77,3 @@ snapshots:
   undici-types@6.21.0: {}
 
   zod@3.25.76: {}
-
-  zyka-sdk@0.1.1(zod@3.25.76):
-    optionalDependencies:
-      zod: 3.25.76

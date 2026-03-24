@@ -1,17 +1,32 @@
 {
   "name": "zyka-sdk",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "Programmatic AI media generation SDK for Zyka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "echo 'No tests yet'"
   },
-  "keywords": ["zyka", "ai", "video", "image", "tts", "voice", "sdk", "cli", "sora", "dalle", "kling", "media-generation"],
+  "keywords": [
+    "zyka",
+    "ai",
+    "video",
+    "image",
+    "tts",
+    "voice",
+    "sdk",
+    "cli",
+    "sora",
+    "dalle",
+    "kling",
+    "media-generation"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/kshitijdixit/zyka-sdk"
@@ -26,6 +41,8 @@
     "zod": "^3.20.0"
   },
   "peerDependenciesMeta": {
-    "zod": { "optional": true }
+    "zod": {
+      "optional": true
+    }
   }
 }
