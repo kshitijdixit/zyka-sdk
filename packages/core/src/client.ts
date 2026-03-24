@@ -161,6 +161,7 @@ function normalizeResult(raw: Record<string, unknown>, type: GenerationType): Ge
     (raw.video_generation as Record<string, unknown>) ||
     (raw.image_generation as Record<string, unknown>) ||
     (raw.voice as Record<string, unknown>) ||
+    (raw.ttsLog as Record<string, unknown>) ||
     (raw.tts_log as Record<string, unknown>) ||
     (raw.element as Record<string, unknown>) ||
     raw;
@@ -433,7 +434,7 @@ export class ZykaClient {
   async getTTSStatus(id: string): Promise<GenerationResult> {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'GET',
-      path: `/api/voice-clone/tts-logs/${id}`,
+      path: `/api/voice-clone/tts-logs/${id}?refresh=true`,
       token: this.token,
       baseUrl: this.baseUrl,
     });
