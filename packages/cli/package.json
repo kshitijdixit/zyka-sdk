@@ -1,6 +1,6 @@
 {
   "name": "zyka",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Zyka SDK CLI — programmatic AI media generation",
   "main": "dist/index.js",
   "bin": {
@@ -8,13 +8,16 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "skills",
+    "scripts"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "echo 'No tests yet'"
+    "test": "echo 'No tests yet'",
+    "postinstall": "node scripts/postinstall.js"
   },
   "license": "MIT",
   "devDependencies": {

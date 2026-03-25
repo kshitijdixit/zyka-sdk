@@ -9,7 +9,7 @@ const program = new Command();
 program
   .name('zyka')
   .description('Zyka SDK CLI — programmatic AI media generation')
-  .version('0.3.0');
+  .version('0.3.1');
 
 // ── zyka auth ────────────────────────────────
 
