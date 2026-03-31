@@ -398,14 +398,17 @@ export class ZykaClient {
    * Create a text-to-speech job.
    * By default, waits for completion. Local file paths for `actual_voice_url` are auto-uploaded.
    *
+   * For MiniMax with `actual_voice_url`: automatically runs two-step voice clone flow
+   * (clone voice → TTS with cloned voice). No need to manage voice IDs manually.
+   *
    * @example
    * // Simplest
    * const result = await client.createTTS({ voice_id: 'your-voice-id', script: 'Hello world' });
    *
    * @example
-   * // Voice clone from local audio file
+   * // Voice clone from local audio file (works for all providers including MiniMax)
    * const result = await client.createTTS(
-   *   { provider: 'chatterbox', actual_voice_url: './my-voice.mp3', script: 'Hello' },
+   *   { provider: 'minimax', actual_voice_url: './my-voice.mp3', script: 'Hello' },
    *   { output: './speech.mp3' }
    * );
    */
@@ -413,6 +416,61 @@ export class ZykaClient {
     // Auto-upload local files
     const resolved = { ...params } as Record<string, unknown>;
     resolved.actual_voice_url = await this.resolveFile(params.actual_voice_url);
+
+    // MiniMax voice clone: two-step flow when actual_voice_url is provided without voice_id.
+    // Step 1: POST /voice-clone/voices to create a cloned voice, poll until ready.
+    // Step 2: POST /voice-clone/tts with the cloned voice's my_voice_id.
+    if (resolved.provider === 'minimax' && resolved.actual_voice_url && !resolved.voice_id) {
+      const cloneRes = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+        method: 'POST',
+        path: '/api/voice-clone/voices',
+        body: {
+          name: (resolved.name as string) || 'SDK Voice Clone',
+          provider: 'minimax',
+          actual_voice_url: resolved.actual_voice_url,
+          script: resolved.script,
+        },
+        token: this.token,
+        baseUrl: this.baseUrl,
+      });
+
+      const voice = (cloneRes.data as Record<string, unknown>)?.voice as Record<string, unknown> | undefined;
+      const myVoiceId = voice?.my_voice_id as string | undefined;
+      if (!myVoiceId) {
+        throw new Error('MiniMax voice clone failed: no voice ID returned');
+      }
+
+      // Poll until the voice clone completes
+      const cloneTimeout = options?.timeoutMs ?? 5 * 60 * 1000;
+      const cloneInterval = options?.pollIntervalMs ?? 5000;
+      const cloneDeadline = Date.now() + cloneTimeout;
+      let clonedVoice: Record<string, unknown> | undefined;
+
+      while (Date.now() < cloneDeadline) {
+        await new Promise(r => setTimeout(r, cloneInterval));
+        const statusRes = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+          method: 'GET',
+          path: `/api/voice-clone/voices/${myVoiceId}?refresh=true`,
+          token: this.token,
+          baseUrl: this.baseUrl,
+        });
+        clonedVoice = (statusRes.data as Record<string, unknown>)?.voice as Record<string, unknown> | undefined;
+        if (clonedVoice?.status === 'completed') break;
+        if (clonedVoice?.status === 'failed') {
+          const meta = clonedVoice.meta_data as Record<string, unknown> | undefined;
+          const errMsg = (meta?.error as string) || 'unknown error';
+          throw new Error(`MiniMax voice clone failed: ${errMsg}`);
+        }
+      }
+
+      if (clonedVoice?.status !== 'completed') {
+        throw new Error('MiniMax voice clone timed out');
+      }
+
+      // Use the Zyka voice UUID as voice_id for TTS
+      resolved.voice_id = myVoiceId;
+      delete resolved.actual_voice_url;
+    }
 
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
