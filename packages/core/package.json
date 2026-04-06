@@ -1,17 +1,20 @@
 {
   "name": "zyka-sdk",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Programmatic AI media generation SDK for Zyka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "scripts",
+    "skills"
   ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "echo 'No tests yet'"
+    "test": "echo 'No tests yet'",
+    "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [
     "zyka",
