@@ -7,8 +7,8 @@ const os = require('os');
 
 function main() {
   try {
-    const claudeCommandsDir = path.join(os.homedir(), '.claude', 'commands');
-    const targetFile = path.join(claudeCommandsDir, 'zyka-ai.md');
+    const claudeSkillsDir = path.join(os.homedir(), '.claude', 'skills');
+    const targetFile = path.join(claudeSkillsDir, 'zyka-ai.md');
 
     // Locate the skill source file relative to this script
     // scripts/postinstall.js -> skills/zyka-ai.md
@@ -35,17 +35,17 @@ function main() {
         }
 
         fs.writeFileSync(targetFile, sourceContent, 'utf-8');
-        console.log('[zyka] Updated Claude Code skill /zyka-ai to latest version.');
+        console.log('[zyka] Updated Claude Code skill zyka-ai to latest version.');
         return;
       }
 
       // No version marker — user-customized file, don't touch it
-      console.log('[zyka] Skipped skill install: ~/.claude/commands/zyka-ai.md exists (custom).');
+      console.log('[zyka] Skipped skill install: ~/.claude/skills/zyka-ai.md exists (custom).');
       return;
     }
 
     // Create directory tree if needed
-    fs.mkdirSync(claudeCommandsDir, { recursive: true });
+    fs.mkdirSync(claudeSkillsDir, { recursive: true });
 
     // Write the skill file
     fs.writeFileSync(targetFile, sourceContent, 'utf-8');

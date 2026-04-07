@@ -467,6 +467,9 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createShortVideoCreator()` | Extract short clips from a video       | `ShortVideoCreatorParams`, `WaitOptions?` | `client.createShortVideoCreator({ url })`                         |
 | `createBroll()`             | Add B-roll to a video                  | `BrollParams`, `WaitOptions?`             | `client.createBroll({ url })`                                     |
 | `createYouTubeDownloader()` | Download a YouTube video through Zyka  | `YouTubeDownloaderParams`, `WaitOptions?` | `client.createYouTubeDownloader({ url })`                         |
+| `createHoliSpecial()`       | Apply Holi color effect to an image    | `HoliSpecialParams`                       | `client.createHoliSpecial({ image })`                             |
+| `createSimpleApp()`         | Run a simple app on an image           | `SimpleAppParams`                         | `client.createSimpleApp({ image, app_id: '...' })`                |
+| `createVoiceChanger()`      | Change voice in an audio clip          | `VoiceChangerParams`, `WaitOptions?`      | `client.createVoiceChanger({ audio_url, voice_id: '...' })`       |
 
 ### Composition Helpers
 
@@ -484,8 +487,8 @@ console.log(result.scenes["hero-image"].outputUrl);
 
 | Category    | Examples                                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`                                              |
-| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `dall_e_3`, `gpt_image_1`, `kling`, `grok_imagine`, `zyka_helion` |
+| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`                                                           |
+| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `kling`, `grok_imagine`, `zyka_helion` |
 | Audio / TTS | `elevenlabs`, `qwen3`, `chatterbox`, `minimax`, `voxcpm`, `moss-tts`, `fish-audio`                               |
 
 ## Model Lists
@@ -498,42 +501,75 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | ---------------------- | ------------ | --------- | ----------------------------------------- |
 | `sora-2`               | `sora`       | OpenAI    | Text-to-video                             |
 | `sora-2-pro`           | `sora`       | OpenAI    | Higher-end text-to-video                  |
-| `veo-2.0-generate-001` | `veo`        | Google    | Text-to-video                             |
-| `veo-3.0-generate-001` | `veo`        | Google    | Text-to-video                             |
-| `veo-3.1-generate-001` | `veo`        | Google    | Text-to-video with newer model generation |
-| `kling-v2-master`      | `kling`      | Kling AI  | Text-to-video, image-to-video             |
-| `kling-v3`             | `kling`      | Kling AI  | Advanced video generation                 |
-| `kling-v3-pro`         | `kling`      | Kling AI  | Higher-quality advanced video generation  |
-| `kling-o3`             | `kling`      | Kling AI  | Advanced video generation                 |
-| `kling-o3-pro`         | `kling`      | Kling AI  | Higher-quality advanced video generation  |
-| `Seedance V1.5 Pro`    | `bytedance`  | ByteDance | Text-to-video                             |
-| `OmniHuman`            | `bytedance`  | ByteDance | Character / human animation               |
-| `OmniHuman v1.5`       | `bytedance`  | ByteDance | Character / human animation               |
-| `wan-2-6-t2v`          | `wan`        | Alibaba   | Text-to-video                             |
-| `wan-2-6-i2v`          | `wan`        | Alibaba   | Image-to-video                            |
-| `wan-2-5-i2v`          | `wan`        | Alibaba   | Image-to-video                            |
-| `grok-imagine-video`   | `grok`       | xAI       | Text-to-video, image-to-video             |
+| `veo-2.0-generate-001`        | `veo`        | Google    | Text-to-video                             |
+| `veo-3.0-generate-001`        | `veo`        | Google    | Text-to-video                             |
+| `veo-3.0-fast-generate-001`   | `veo`        | Google    | Fast text-to-video                        |
+| `veo-3.1-generate-001`        | `veo`        | Google    | Text-to-video                             |
+| `veo-3.1-fast-generate-001`   | `veo`        | Google    | Fast text-to-video                        |
+| `kling-v1`                    | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v1-5`                  | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v1-6`                  | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v2-master`             | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v2-1`                  | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v2-5-turbo`            | `kling`      | Kling AI  | Fast text-to-video                        |
+| `kling-v2-6`                  | `kling`      | Kling AI  | Text-to-video, image-to-video             |
+| `kling-v3`                    | `kling`      | Kling AI  | Advanced video generation                 |
+| `kling-v3-pro`                | `kling`      | Kling AI  | Higher-quality advanced video generation  |
+| `kling-v3-pro-motion-control` | `kling`      | Kling AI  | Motion-controlled video generation        |
+| `kling-o3`                    | `kling`      | Kling AI  | Advanced video generation                 |
+| `kling-o3-pro`                | `kling`      | Kling AI  | Higher-quality advanced video generation  |
+| `kling-o3-pro-v2v-edit`       | `kling`      | Kling AI  | Video-to-video editing                    |
+| `motion-control`              | `kling`      | Kling AI  | Motion-controlled video generation        |
+| `multi-image-to-video`        | `kling`      | Kling AI  | Multi-image-to-video                      |
+| `kling-video-o1`              | `kling`      | Kling AI  | Advanced video generation                 |
+| `Seedance V1.5 Pro`           | `bytedance`  | ByteDance | Text-to-video                             |
+| `Seedance 2.0`                | `bytedance`  | ByteDance | Text-to-video                             |
+| `Seedance 2.0 Fast`           | `bytedance`  | ByteDance | Fast text-to-video                        |
+| `OmniHuman`                   | `bytedance`  | ByteDance | Character / human animation               |
+| `OmniHuman v1.5`              | `bytedance`  | ByteDance | Character / human animation               |
+| `wan-2-6-t2v`                 | `wan`        | Alibaba   | Text-to-video                             |
+| `wan-2-6-i2v`                 | `wan`        | Alibaba   | Image-to-video                            |
+| `wan-2-5-i2v`                 | `wan`        | Alibaba   | Image-to-video                            |
+| `wan-v2-2-animate-replace`    | `wan`        | Alibaba   | Video animate replace                     |
+| `wan-v2-2-animate-move`       | `wan`        | Alibaba   | Video animate move                        |
+| `wan-2-7`                     | `wan`        | Alibaba   | Text-to-video                             |
+| `grok-imagine-video`          | `grok`       | xAI       | Text-to-video, image-to-video             |
+| `ltx-2.3-text-to-video`       | `ltx`        | LTX       | Text-to-video                             |
+| `ltx-2.3-image-to-video`      | `ltx`        | LTX       | Image-to-video                            |
 
 ### Image Models
 
 | Copy String        | Parent Model       | Provider              | Supported Feature                |
 | ------------------ | ------------------ | --------------------- | -------------------------------- |
-| `nano-banana-1`    | `nano_banana`      | Google / Gemini-based | Text-to-image, image-to-image    |
-| `nano-banana-pro`  | `nano_banana`      | Google / Gemini-based | Higher-quality image generation  |
-| `nano-banana-2`    | `nano_banana`      | Google / Gemini-based | Newer image generation variant   |
-| `flux-1-schnell`   | `flux_1_schnell`   | Black Forest Labs     | Fast text-to-image               |
-| `flux-2-dev`       | `flux_2_dev`       | Black Forest Labs     | Text-to-image                    |
-| `dall-e-2`         | `dall_e_2`         | OpenAI                | Text-to-image                    |
-| `dall-e-3`         | `dall_e_3`         | OpenAI                | Text-to-image                    |
-| `gpt-image-1`      | `gpt_image_1`      | OpenAI                | Text-to-image                    |
-| `gpt-image-1-mini` | `gpt_image_1_mini` | OpenAI                | Text-to-image                    |
-| `gpt-image-1.5`    | `gpt_image_1_5`    | OpenAI                | Text-to-image                    |
-| `kling-v1`         | `kling`            | Kling AI              | Text-to-image                    |
-| `kling-v2`         | `kling`            | Kling AI              | Text-to-image                    |
-| `kling-v2-1`       | `kling`            | Kling AI              | Text-to-image                    |
-| `omni-image`       | `kling`            | Kling AI              | Multi-reference image generation |
-| `kling-image-v3`   | `kling`            | Kling AI              | Advanced image generation        |
-| `qwen-image-2-pro` | `qwen_image_2_pro` | Qwen                  | Text-to-image                    |
+| `nano-banana-1`                 | `nano_banana`                   | Google / Gemini-based | Text-to-image, image-to-image    |
+| `nano-banana-pro`               | `nano_banana`                   | Google / Gemini-based | Higher-quality image generation  |
+| `nano-banana-2`                 | `nano_banana`                   | Google / Gemini-based | Newer image generation variant   |
+| `flux-1-schnell`                | `flux_1_schnell`                | Black Forest Labs     | Fast text-to-image               |
+| `flux-2-dev`                    | `flux_2_dev`                    | Black Forest Labs     | Text-to-image                    |
+| `flux-2-klein-9b`               | `flux_2_klein_9b`               | Black Forest Labs     | Text-to-image                    |
+| `dall-e-2`                      | `dall_e_2`                      | OpenAI                | Text-to-image                    |
+| `dall-e-3`                      | `dall_e_3`                      | OpenAI                | Text-to-image                    |
+| `gpt-image-1`                   | `gpt_image_1`                   | OpenAI                | Text-to-image                    |
+| `gpt-image-1-mini`              | `gpt_image_1_mini`              | OpenAI                | Text-to-image                    |
+| `gpt-image-1.5`                 | `gpt_image_1_5`                 | OpenAI                | Text-to-image                    |
+| `kling-v1`                      | `kling`                         | Kling AI              | Text-to-image                    |
+| `kling-v1-5`                    | `kling`                         | Kling AI              | Text-to-image                    |
+| `kling-v2`                      | `kling`                         | Kling AI              | Text-to-image                    |
+| `kling-v2-new`                  | `kling`                         | Kling AI              | Text-to-image                    |
+| `kling-v2-1`                    | `kling`                         | Kling AI              | Text-to-image                    |
+| `omni-image`                    | `kling`                         | Kling AI              | Multi-reference image generation |
+| `kling-image-o1`                | `kling`                         | Kling AI              | Advanced image generation        |
+| `multi-image-to-image`          | `kling`                         | Kling AI              | Multi-image generation           |
+| `kling-image-v3`                | `kling`                         | Kling AI              | Advanced image generation        |
+| `kling-image-v3-text-to-image`  | `kling`                         | Kling AI              | Advanced text-to-image           |
+| `lucid-origin`                  | `lucid_origin`                  | Leonardo              | Text-to-image                    |
+| `phoenix-1.0`                   | `phoenix_1_0`                   | Leonardo              | Text-to-image                    |
+| `stable-diffusion-xl-base-1.0`  | `stable_diffusion_xl_base_1_0`  | Stability AI          | Text-to-image                    |
+| `stable-diffusion-v1-5-img2img` | `stable_diffusion_v1_5_img2img` | Stability AI          | Image-to-image                   |
+| `z-image-turbo`                 | `z_image_turbo`                 | Zyka                  | Fast text-to-image               |
+| `zyka-helion`                   | `zyka_helion`                   | Zyka                  | Fast text-to-image               |
+| `grok-imagine-image`            | `grok_imagine`                  | xAI                   | Text-to-image                    |
+| `qwen-image-2-pro`              | `qwen_image_2_pro`              | Qwen                  | Text-to-image                    |
 
 ### Audio / TTS Providers
 

@@ -35,7 +35,7 @@ export interface ZykaConfig {
  * | `wan`           | text/image-to-video | Alibaba WAN                               |
  * | `infinite_talk` | image-to-video    | Talking-head animation, requires audio      |
  */
-export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok';
+export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok' | 'ltx';
 
 // Sub-model types for video
 export type SoraSubModel = 'sora-2' | 'sora-2-pro';
@@ -49,11 +49,13 @@ export type KlingVideoSubModel =
   | 'kling-v2-master' | 'kling-v2-1' | 'kling-v2-1-master' | 'kling-v2-5-turbo' | 'kling-v2-6'
   | 'kling-v3' | 'kling-v3-pro'
   | 'kling-o3' | 'kling-o3-pro'
+  | 'kling-o3-pro-v2v-edit' | 'kling-v3-pro-motion-control'
   | 'multi-image-to-video' | 'kling-video-o1';
-export type BytedanceSubModel = 'Seedance V1.5 Pro' | 'OmniHuman' | 'OmniHuman v1.5';
-export type WanSubModel = 'wan-2-6-t2v' | 'wan-2-6-i2v' | 'wan-2-5-i2v' | 'wan-v2-2-animate-replace' | 'wan-v2-2-animate-move';
+export type BytedanceSubModel = 'Seedance V1.5 Pro' | 'OmniHuman' | 'OmniHuman v1.5' | 'Seedance 2.0' | 'Seedance 2.0 Fast';
+export type WanSubModel = 'wan-2-6-t2v' | 'wan-2-6-i2v' | 'wan-2-5-i2v' | 'wan-v2-2-animate-replace' | 'wan-v2-2-animate-move' | 'wan-2-7';
 export type GrokVideoSubModel = 'grok-imagine-video';
-export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | GrokVideoSubModel | string;
+export type LtxSubModel = 'ltx-2.3-text-to-video' | 'ltx-2.3-image-to-video';
+export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | GrokVideoSubModel | LtxSubModel | string;
 
 /**
  * Video generation parameters.
@@ -279,7 +281,7 @@ export interface VideoGenerationParams {
  * | `z_image_turbo`                    | `z-image-turbo`                  | Z Image Turbo (fast)                  |
  */
 export type ImageModel =
-  | 'nano_banana' | 'flux_2_dev' | 'flux_1_schnell'
+  | 'nano_banana' | 'flux_2_dev' | 'flux_1_schnell' | 'flux_2_klein_9b'
   | 'lucid_origin' | 'phoenix_1_0'
   | 'stable_diffusion_v1_5_img2img' | 'stable_diffusion_xl_base_1_0'
   | 'dall_e_2' | 'dall_e_3'
@@ -291,7 +293,7 @@ export type ImageModel =
 
 export type ImageSubModel =
   | 'nano-banana-1' | 'nano-banana-pro'
-  | 'flux-2-dev' | 'flux-1-schnell'
+  | 'flux-2-dev' | 'flux-1-schnell' | 'flux-2-klein-9b'
   | 'lucid-origin' | 'phoenix-1.0'
   | 'stable-diffusion-v1-5-img2img' | 'stable-diffusion-xl-base-1.0'
   | 'dall-e-2' | 'dall-e-3'
@@ -744,6 +746,32 @@ export interface PromptRefinementParams {
   [key: string]: unknown;
 }
 
+export interface HoliSpecialParams {
+  /** URL or local path of the image */
+  image: string;
+  [key: string]: unknown;
+}
+
+export interface SimpleAppParams {
+  /** URL or local path of the image */
+  image: string;
+  /** App ID for the simple app tool */
+  app_id?: string;
+  /** Optional prompt */
+  prompt?: string;
+  [key: string]: unknown;
+}
+
+export interface VoiceChangerParams {
+  /** URL or local path of the audio to transform */
+  audio_url: string;
+  /** Target voice ID */
+  voice_id?: string;
+  /** Reference voice audio URL or local path for voice cloning */
+  actual_voice_url?: string;
+  [key: string]: unknown;
+}
+
 // ─────────────────────────────────────────────
 // Wait options (for built-in polling)
 // ─────────────────────────────────────────────
@@ -767,7 +795,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

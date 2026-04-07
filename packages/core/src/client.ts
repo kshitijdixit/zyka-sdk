@@ -26,6 +26,9 @@ import type {
   ShortVideoCreatorParams,
   BrollParams,
   YouTubeDownloaderParams,
+  HoliSpecialParams,
+  SimpleAppParams,
+  VoiceChangerParams,
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
@@ -721,6 +724,43 @@ export class ZykaClient {
     const result = normalizeResult(res.data || {}, 'youtube-downloader');
     if (options?.waitForCompletion !== false) {
       return this.pollAppStatus('/api/apps/youtube-downloader/status', result.id, 'youtube-downloader', options);
+    }
+    return result;
+  }
+
+  async createHoliSpecial(params: HoliSpecialParams): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.image = await resolveToUrl(params.image, this.baseUrl, this.token);
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/holi-special/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'holi-special');
+  }
+
+  async createSimpleApp(params: SimpleAppParams): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.image = await resolveToUrl(params.image, this.baseUrl, this.token);
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/simple-apps/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'simple-app');
+  }
+
+  async createVoiceChanger(params: VoiceChangerParams, options?: WaitOptions): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.audio_url = await resolveToUrl(params.audio_url, this.baseUrl, this.token);
+    if (params.actual_voice_url) {
+      resolved.actual_voice_url = await resolveToUrl(params.actual_voice_url, this.baseUrl, this.token);
+    }
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/voice-changer/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'voice-changer');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus('/api/apps/voice-changer/status', result.id, 'voice-changer', options);
     }
     return result;
   }
