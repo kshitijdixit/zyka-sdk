@@ -45,13 +45,20 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | Kling O3 | `kling` | `-s kling-o3` or `kling-o3-pro`, `-d 3-15` |
 | Kling Omni | `kling` | `-s kling-video-o1`, `-d 3-10` |
 | Kling Multi-Image | `kling` | `-s multi-image-to-video` (pass image_list via SDK) |
-| ByteDance Seedance | `bytedance` | `-s "Seedance V1.5 Pro"`, `-d 4-12`, `--resolution 720p` |
-| ByteDance OmniHuman | `bytedance` | `-s "OmniHuman v1.5"`, `--image ./face.jpg --audio ./speech.mp3` |
+| ByteDance Seedance V1.5 Pro | `bytedance` | `-s "Seedance V1.5 Pro"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance Seedance 2.0 | `bytedance` | `-s "Seedance 2.0"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance Seedance 2.0 Fast | `bytedance` | `-s "Seedance 2.0 Fast"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance OmniHuman | `bytedance` | `-s "OmniHuman"`, `--image ./face.jpg --audio ./speech.mp3` |
+| ByteDance OmniHuman v1.5 | `bytedance` | `-s "OmniHuman v1.5"`, `--image ./face.jpg --audio ./speech.mp3` |
 | Alibaba WAN T2V | `wan` | `-s wan-2-6-t2v`, `-d 5/10/15`, `--size 1280*720` |
+| Alibaba WAN 2.7 | `wan` | `-s wan-2-7`, `-d 5/10/15`, `--size 1280*720` |
 | Alibaba WAN I2V | `wan` | `-s wan-2-6-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
+| Alibaba WAN I2V 2.5 | `wan` | `-s wan-2-5-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
 | WAN Animate Replace | `wan` | `-s wan-v2-2-animate-replace`, `--video ./vid.mp4 --image ./char.png` |
 | WAN Animate Move | `wan` | `-s wan-v2-2-animate-move`, `--video ./vid.mp4 --image ./char.png` |
 | Talking Head | `infinite_talk` | `--image ./face.jpg --audio ./speech.mp3` |
+| LTX Video T2V | `ltx` | `-s ltx-2.3-text-to-video` |
+| LTX Video I2V | `ltx` | `-s ltx-2.3-image-to-video`, `--image ./img.jpg` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
 
 ### Video Examples
@@ -106,7 +113,8 @@ npx zyka generate image -m MODEL -p "prompt" [options]
 | GPT Image 1.5 | `gpt_image_1_5` | Latest OpenAI |
 | Flux Schnell | `flux_1_schnell` | Fast |
 | Flux 2 Dev | `flux_2_dev` | High quality |
-| Kling Image | `kling` | `-s kling-v2`, `kling-image-v3`, `omni-image`, `multi-image-to-image` |
+| Flux 2 Klein 9B | `flux_2_klein_9b` | Compact high quality |
+| Kling Image | `kling` | `-s kling-v1`, `kling-v2`, `kling-image-v3`, `kling-image-v3-text-to-image`, `omni-image`, `kling-image-o1`, `multi-image-to-image` |
 | SD XL | `stable_diffusion_xl_base_1_0` | `--negative-prompt "blurry"` |
 | SD img2img | `stable_diffusion_v1_5_img2img` | Needs `--image` |
 | Lucid Origin | `lucid_origin` | Leonardo AI |
@@ -227,7 +235,10 @@ const client = new ZykaClient();
 | Video to Script | `createVideoToScript()` | `{ url, script_style?: 'general'/'screenplay'/'blog_post'/'social_media'/'documentary' }` |
 | Video Cleaner | `createVideoCleaner()` | `{ url, language? }` |
 | Video Upscaler | `createVideoUpscaler()` | `{ video_url, target_resolution: '1080p'/'2k'/'4k', target_fps: '30fps'/'60fps' }` |
-| Video Dubbing | `createVideoDubbing()` | `{ video_url, output_language: 'Hindi (India)' }` |
+| Video Dubbing (HeyGen) | `createVideoDubbing()` | `{ video_url, model: 'heygen', output_language: 'Hindi (India)', mode?, enable_caption?, enable_speech_enhancement?, translate_audio_only? }` |
+| Video Dubbing (ElevenLabs) | `createVideoDubbing()` | `{ video_url, model: 'elevenlabs', output_language: 'hi', source_lang?, num_speakers?, highest_resolution?, drop_background_audio?, use_profanity_filter? }` |
+| Video Dubbing (Sarvam) | `createVideoDubbing()` | `{ video_url, model: 'sarvam', output_language: 'Hindi' (or comma-separated), source_lang?, num_speakers?, genre?: 'general'/'news'/'entertainment'/'education'/'sports'/'religious' }` |
+| Dubbing Languages | `getVideoDubbingLanguages(model)` | model: `'heygen'`/`'elevenlabs'`/`'sarvam'` — returns supported languages |
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |

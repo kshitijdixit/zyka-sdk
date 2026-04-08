@@ -23,6 +23,7 @@ import type {
   VideoCleanerParams,
   VideoUpscalerParams,
   VideoDubbingParams,
+  VideoDubbingModel,
   ShortVideoCreatorParams,
   BrollParams,
   YouTubeDownloaderParams,
@@ -682,14 +683,22 @@ export class ZykaClient {
 
   async createVideoDubbing(params: VideoDubbingParams, options?: WaitOptions): Promise<GenerationResult> {
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
-      method: 'POST', path: '/api/apps/video-dubbing/create',
+      method: 'POST', path: '/api/video-dubbing',
       body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
     });
     const result = normalizeResult(res.data || {}, 'video-dubbing');
     if (options?.waitForCompletion !== false) {
-      return this.pollAppStatus('/api/apps/video-dubbing/status', result.id, 'video-dubbing', options);
+      return this.pollAppStatus('/api/video-dubbing/status', result.id, 'video-dubbing', options);
     }
     return result;
+  }
+
+  async getVideoDubbingLanguages(model: VideoDubbingModel): Promise<unknown> {
+    const res = await doRequest<ZykaApiResponse<unknown>>({
+      method: 'GET', path: `/api/video-dubbing/languages?model=${model}`,
+      token: this.token, baseUrl: this.baseUrl,
+    });
+    return res.data;
   }
 
   async createShortVideoCreator(params: ShortVideoCreatorParams, options?: WaitOptions): Promise<GenerationResult> {

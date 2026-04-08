@@ -463,7 +463,8 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createVideoToScript()`     | Convert video to text/script           | `VideoToScriptParams`, `WaitOptions?`     | `client.createVideoToScript({ url })`                             |
 | `createVideoCleaner()`      | Remove fillers or clean a video        | `VideoCleanerParams`, `WaitOptions?`      | `client.createVideoCleaner({ url })`                              |
 | `createVideoUpscaler()`     | Upscale a video                        | `VideoUpscalerParams`, `WaitOptions?`     | `client.createVideoUpscaler({ video_url })`                       |
-| `createVideoDubbing()`      | Dub a video to another language        | `VideoDubbingParams`, `WaitOptions?`      | `client.createVideoDubbing({ video_url, output_language: 'es' })` |
+| `createVideoDubbing()`      | Dub a video to another language (models: `heygen`, `elevenlabs`, `sarvam`) | `VideoDubbingParams`, `WaitOptions?` | `client.createVideoDubbing({ video_url, model: 'heygen', output_language: 'Hindi (India)' })` |
+| `getVideoDubbingLanguages()` | Fetch supported languages for a dubbing model | `VideoDubbingModel` | `client.getVideoDubbingLanguages('elevenlabs')` |
 | `createShortVideoCreator()` | Extract short clips from a video       | `ShortVideoCreatorParams`, `WaitOptions?` | `client.createShortVideoCreator({ url })`                         |
 | `createBroll()`             | Add B-roll to a video                  | `BrollParams`, `WaitOptions?`             | `client.createBroll({ url })`                                     |
 | `createYouTubeDownloader()` | Download a YouTube video through Zyka  | `YouTubeDownloaderParams`, `WaitOptions?` | `client.createYouTubeDownloader({ url })`                         |
@@ -582,6 +583,28 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | `minimax`    | MiniMax           | Text-to-speech, preset voices, voice cloning | SDK supports clone-to-TTS flow        |
 | `moss-tts`   | RunPod / MOSS-TTS | Text-to-speech                               | Hosted TTS workflow                   |
 | `fish-audio` | Fish Audio        | Instant voice cloning                        | Good for reference voice generation   |
+
+### Video Dubbing Providers
+
+| Model (`model` field) | Provider   | Language Format | Key Options |
+| --------------------- | ---------- | --------------- | ----------- |
+| `heygen`              | HeyGen     | Full name — `'Hindi (India)'` | `mode: 'speed'\|'precision'`, `enable_caption`, `enable_speech_enhancement`, `translate_audio_only` |
+| `elevenlabs`          | ElevenLabs | ISO code — `'hi'` | `source_lang`, `num_speakers`, `highest_resolution`, `drop_background_audio`, `use_profanity_filter` |
+| `sarvam`              | Sarvam     | Language name — `'Hindi'`; comma-separated for multi-target: `'Hindi,Tamil,Telugu'` | `source_lang`, `num_speakers`, `genre: 'general'\|'news'\|'entertainment'\|'education'\|'sports'\|'religious'` |
+
+```js
+// HeyGen — lip-sync dubbing
+await client.createVideoDubbing({ video_url: './video.mp4', model: 'heygen', output_language: 'Hindi (India)', mode: 'precision' });
+
+// ElevenLabs — high-quality voice dubbing
+await client.createVideoDubbing({ video_url: './video.mp4', model: 'elevenlabs', output_language: 'hi', highest_resolution: true });
+
+// Sarvam — multi-language Indian dubbing
+await client.createVideoDubbing({ video_url: './video.mp4', model: 'sarvam', output_language: 'Hindi,Tamil', genre: 'education' });
+
+// Fetch supported languages
+const langs = await client.getVideoDubbingLanguages('heygen');
+```
 
 ## CLI
 

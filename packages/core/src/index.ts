@@ -50,6 +50,8 @@ export type {
   VideoToScriptParams,
   VideoCleanerParams,
   VideoUpscalerParams,
+  VideoDubbingModel,
+  SarvamGenre,
   VideoDubbingParams,
   ShortVideoCreatorParams,
   BrollParams,

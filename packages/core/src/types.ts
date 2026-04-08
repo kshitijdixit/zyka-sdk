@@ -92,8 +92,9 @@ export interface VideoGenerationParams {
    * - **sora**: `'sora-2'` (default), `'sora-2-pro'`
    * - **veo**: `'veo-2.0-generate-001'`, `'veo-3.0-generate-001'`, `'veo-3.1-generate-001'`, etc.
    * - **kling**: `'motion-control'` (default), `'kling-v1'` thru `'kling-v3-pro'`, `'kling-o3'`, `'kling-o3-pro'`, `'multi-image-to-video'`, `'kling-video-o1'`
-   * - **bytedance**: `'Seedance V1.5 Pro'` (default), `'OmniHuman'`, `'OmniHuman v1.5'`
-   * - **wan**: `'wan-2-6-t2v'` (default, text-to-video), `'wan-2-6-i2v'` (image-to-video), `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
+   * - **bytedance**: `'Seedance V1.5 Pro'` (default), `'Seedance 2.0'`, `'Seedance 2.0 Fast'`, `'OmniHuman'`, `'OmniHuman v1.5'`
+   * - **wan**: `'wan-2-6-t2v'` (default, text-to-video), `'wan-2-7'`, `'wan-2-6-i2v'` (image-to-video), `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
+   * - **ltx**: `'ltx-2.3-text-to-video'` (default), `'ltx-2.3-image-to-video'`
    */
   sub_model?: VideoSubModel;
 
@@ -656,21 +657,60 @@ export interface VideoUpscalerParams {
   [key: string]: unknown;
 }
 
+/** Dubbing provider model */
+export type VideoDubbingModel = 'heygen' | 'elevenlabs' | 'sarvam';
+
+/** Sarvam genre options for domain-specific dubbing accuracy */
+export type SarvamGenre = 'general' | 'news' | 'entertainment' | 'education' | 'sports' | 'religious';
+
 export interface VideoDubbingParams {
   /** URL of the video to dub */
   video_url: string;
-  /** Target language (full name e.g. 'Hindi (India)') */
+  /**
+   * Dubbing provider model. Default: 'heygen'
+   * - 'heygen'    — full-featured dubbing with lip-sync
+   * - 'elevenlabs' — high-quality voice dubbing, language as ISO code (e.g. 'hi')
+   * - 'sarvam'    — Indian-language specialist, language as name (e.g. 'Hindi'), supports comma-separated multi-target
+   */
+  model?: VideoDubbingModel;
+  /**
+   * Target language. Format depends on model:
+   * - heygen:     full name, e.g. 'Hindi (India)'
+   * - elevenlabs: ISO code, e.g. 'hi'
+   * - sarvam:     language name, e.g. 'Hindi' — comma-separate for multiple targets
+   */
   output_language: string;
-  /** Only translate audio, keep original video */
+
+  // --- HeyGen-specific ---
+  /** (heygen) Only translate audio, keep original video */
   translate_audio_only?: boolean;
+  /** (heygen) Processing mode */
+  mode?: 'speed' | 'precision';
+  /** (heygen) Enable caption overlay */
+  enable_caption?: boolean;
+  /** (heygen) Enable speech enhancement */
+  enable_speech_enhancement?: boolean;
+
+  // --- ElevenLabs / Sarvam shared ---
+  /** (elevenlabs, sarvam) Source language ISO code or name */
+  source_lang?: string;
+  /** (elevenlabs, sarvam) Number of speakers in the video */
+  num_speakers?: number;
+
+  // --- ElevenLabs-specific ---
+  /** (elevenlabs) Output at highest available resolution */
+  highest_resolution?: boolean;
+  /** (elevenlabs) Remove background audio from output */
+  drop_background_audio?: boolean;
+  /** (elevenlabs) Filter profanity from output */
+  use_profanity_filter?: boolean;
+
+  // --- Sarvam-specific ---
+  /** (sarvam) Content genre for domain-specific accuracy */
+  genre?: SarvamGenre;
+
   /** Title for the job */
   title?: string;
-  /** Mode: 'speed' or 'precision' */
-  mode?: 'speed' | 'precision';
-  /** Enable caption overlay */
-  enable_caption?: boolean;
-  /** Enable speech enhancement */
-  enable_speech_enhancement?: boolean;
   [key: string]: unknown;
 }
 
