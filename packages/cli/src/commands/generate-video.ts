@@ -4,7 +4,7 @@ export function registerGenerateVideo(generate: Command): void {
   generate
     .command('video')
     .description('Generate a video from a text prompt')
-    .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk, grok, ltx)')
+    .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk, grok, ltx, aurora)')
     .requiredOption('-p, --prompt <prompt>', 'Text prompt')
     .option('-s, --sub-model <sub_model>', 'Model variant (e.g. sora-2, veo-3.1-generate-001, Seedance 2.0, ltx-2.3-text-to-video)')
     .option('-d, --duration <duration>', 'Duration in seconds')
@@ -29,6 +29,7 @@ export function registerGenerateVideo(generate: Command): void {
     .option('--num-inference-steps <n>', 'Number of inference steps (WAN)')
     .option('--camera-fixed', 'Keep camera fixed (Bytedance)')
     .option('--turbo-mode', 'Enable turbo mode (Bytedance OmniHuman v1.5)')
+    .option('--audio-guidance-scale <n>', 'Audio guidance scale 0-10 (aurora)')
     .option('--input-type <image|video>', 'Input type: image or video (Infinite Talk)')
     .option('--person-count <single|multi>', 'Person count: single or multi (Infinite Talk)')
     .option('--width <n>', 'Output width in pixels (Infinite Talk)')
@@ -69,6 +70,7 @@ export function registerGenerateVideo(generate: Command): void {
       if (opts.numInferenceSteps) params.num_inference_steps = parseInt(opts.numInferenceSteps as string, 10);
       if (opts.cameraFixed) params.camera_fixed = true;
       if (opts.turboMode) params.turbo_mode = true;
+      if (opts.audioGuidanceScale) params.audio_guidance_scale = parseFloat(opts.audioGuidanceScale as string);
       if (opts.inputType) params.input_type = opts.inputType;
       if (opts.personCount) params.person_count = opts.personCount;
       if (opts.width) params.width = parseInt(opts.width as string, 10);

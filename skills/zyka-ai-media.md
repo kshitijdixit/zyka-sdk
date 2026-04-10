@@ -49,6 +49,7 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | Alibaba WAN I2V | `wan` | `-s wan-2-6-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
 | WAN Animate | `wan` | `-s wan-v2-2-animate-replace` or `wan-v2-2-animate-move`, `--video ./vid.mp4 --image ./char.png` |
 | Talking Head | `infinite_talk` | `--image ./face.jpg --audio ./speech.mp3` |
+| Aurora (Lip Sync) | `aurora` | `--video ./face.mp4 --audio ./speech.mp3` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
 
 ### Video Examples
@@ -244,6 +245,12 @@ await client.createBroll({ url: 'https://video.mp4', broll_duration_sec: 'auto' 
 
 // YouTube downloader (49 credits, link expires in 1h)
 await client.createYouTubeDownloader({ url: 'https://youtube.com/watch?v=...', quality: '720p' });
+
+// Voice changer — clone/transform voice
+await client.createVoiceChanger({ source_audio_url: 'https://audio.mp3', target_voice_url: 'https://voice.mp3' });
+
+// Image to animated GIF
+await client.createImageToGif({ image_url: 'https://photo.png' });
 ```
 
 ---

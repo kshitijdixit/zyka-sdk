@@ -34,8 +34,9 @@ export interface ZykaConfig {
  * | `bytedance`     | text-to-video     | Seedance, OmniHuman                         |
  * | `wan`           | text/image-to-video | Alibaba WAN                               |
  * | `infinite_talk` | image-to-video    | Talking-head animation, requires audio      |
+ * | `aurora`        | video/image+audio | AI lip-sync (Sync Labs Aurora)              |
  */
-export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok' | 'ltx';
+export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok' | 'ltx' | 'aurora';
 
 // Sub-model types for video
 export type SoraSubModel = 'sora-2' | 'sora-2-pro';
@@ -239,10 +240,19 @@ export interface VideoGenerationParams {
   video_list?: Array<{ video_url: string; refer_type?: 'feature' | 'base'; keep_original_sound?: 'yes' | 'no' }>;
   /** Kling Omni-Video element references */
   element_list?: Array<{ element_id: number }>;
-  /** Kling O3 reference image URLs */
+  /** Kling O3 reference image URLs; Seedance 2.0 reference images (up to 9) */
   image_urls?: string[];
   /** Video URL for V2V (Infinite Talk, WAN animate, Kling motion-control) */
   video_url?: string;
+  /** Seedance 2.0 reference-to-video: reference video URLs (up to 3) */
+  video_urls?: string[];
+  /** Seedance 2.0 reference-to-video: reference audio URLs (up to 3) */
+  audio_urls?: string[];
+
+  // ── Aurora (Sync Labs Lip Sync)-specific ──
+
+  /** Aurora lip-sync audio guidance scale (0-10, default 2) */
+  audio_guidance_scale?: number;
 
   // ── Callbacks ──
 
@@ -803,12 +813,20 @@ export interface SimpleAppParams {
 }
 
 export interface VoiceChangerParams {
-  /** URL or local path of the audio to transform */
-  audio_url: string;
+  /** URL or local path of the source audio to transform */
+  source_audio_url: string;
   /** Target voice ID */
   voice_id?: string;
   /** Reference voice audio URL or local path for voice cloning */
-  actual_voice_url?: string;
+  target_voice_url?: string;
+  /** Voice strength for cloning (0-1, default 1.0) */
+  voice_strength?: number;
+  [key: string]: unknown;
+}
+
+export interface ImageToGifParams {
+  /** URL or local path of the image to convert to animated GIF */
+  image_url: string;
   [key: string]: unknown;
 }
 
@@ -835,7 +853,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'image-to-gif';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

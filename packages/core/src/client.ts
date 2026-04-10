@@ -30,6 +30,7 @@ import type {
   HoliSpecialParams,
   SimpleAppParams,
   VoiceChangerParams,
+  ImageToGifParams,
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
@@ -757,11 +758,21 @@ export class ZykaClient {
     return normalizeResult(res.data || {}, 'simple-app');
   }
 
+  async createImageToGif(params: ImageToGifParams): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.image_url = await resolveToUrl(params.image_url, this.baseUrl, this.token);
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/image-to-vector/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    return normalizeResult(res.data || {}, 'image-to-gif');
+  }
+
   async createVoiceChanger(params: VoiceChangerParams, options?: WaitOptions): Promise<GenerationResult> {
     const resolved = { ...params } as Record<string, unknown>;
-    resolved.audio_url = await resolveToUrl(params.audio_url, this.baseUrl, this.token);
-    if (params.actual_voice_url) {
-      resolved.actual_voice_url = await resolveToUrl(params.actual_voice_url, this.baseUrl, this.token);
+    resolved.source_audio_url = await resolveToUrl(params.source_audio_url, this.baseUrl, this.token);
+    if (params.target_voice_url) {
+      resolved.target_voice_url = await resolveToUrl(params.target_voice_url, this.baseUrl, this.token);
     }
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST', path: '/api/apps/voice-changer/create',

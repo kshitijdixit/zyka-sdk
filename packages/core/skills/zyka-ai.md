@@ -52,6 +52,7 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | WAN Animate Replace | `wan` | `-s wan-v2-2-animate-replace`, `--video ./vid.mp4 --image ./char.png` |
 | WAN Animate Move | `wan` | `-s wan-v2-2-animate-move`, `--video ./vid.mp4 --image ./char.png` |
 | Talking Head | `infinite_talk` | `--image ./face.jpg --audio ./speech.mp3` |
+| Aurora (Lip Sync) | `aurora` | `--video ./face.mp4 --audio ./speech.mp3` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
 
 ### Video Examples
@@ -231,6 +232,8 @@ const client = new ZykaClient();
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
+| Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
+| Image to GIF | `createImageToGif()` | `{ image_url }` |
 
 ---
 

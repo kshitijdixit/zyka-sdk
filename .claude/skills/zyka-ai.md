@@ -51,6 +51,7 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | WAN Animate Replace | `wan` | `-s wan-v2-2-animate-replace`, `--video ./vid.mp4 --image ./char.png` |
 | WAN Animate Move | `wan` | `-s wan-v2-2-animate-move`, `--video ./vid.mp4 --image ./char.png` |
 | Talking Head | `infinite_talk` | `--image ./face.jpg --audio ./speech.mp3` |
+| Aurora (Lip Sync) | `aurora` | `--video ./face.mp4 --audio ./speech.mp3` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
 
 ### Video Examples
@@ -230,6 +231,22 @@ const client = new ZykaClient();
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
+| Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
+| Image to GIF | `createImageToGif()` | `{ image_url }` |
+
+### CLI App Commands
+```bash
+npx zyka generate voice-changer --audio ./input.mp3 --voice ./reference.mp3 -o ./output.mp3
+npx zyka generate image-to-gif --image ./photo.png -o ./animated.gif
+npx zyka generate upscale --image ./photo.jpg --resolution 4k -o ./upscaled.jpg
+npx zyka generate face-swap --type image --url ./target.jpg --face ./face.jpg -o ./result.jpg
+npx zyka generate caption --url ./video.mp4 --language en -o ./captioned.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model heygen --language "Hindi (India)" --mode precision -o ./dubbed.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model elevenlabs --language hi --source-lang en --num-speakers 2 --highest-resolution -o ./dubbed.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model sarvam --language "Hindi,Tamil" --genre education -o ./dubbed.mp4
+npx zyka generate short-video --url ./long.mp4 --duration auto -o ./clips/
+npx zyka generate youtube-download --url "https://youtube.com/watch?v=..." --quality 720p -o ./video.mp4
+```
 
 ---
 

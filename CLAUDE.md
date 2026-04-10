@@ -75,7 +75,7 @@ await client.createImage({ model: 'nano_banana', image: asset('photo.png'), prom
 
 ## Video Models
 
-The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`
+The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`
 
 ### sora (OpenAI Sora)
 ```js
@@ -142,6 +142,13 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 - **aspect_ratio**: `'auto'`, `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:2'`, etc.
 - **resolution**: `'480p'`, `'720p'`
 - **image_url**: Optional — if provided, switches to Image-to-Video mode
+
+### aurora (Sync Labs — Lip Sync)
+```js
+{ model: 'aurora', video_url: './face.mp4', audio_url: './speech.mp3' }
+```
+- **video_url**: Source video or image to lip-sync (required) — local path or URL
+- **audio_url**: Audio to drive the lip sync (required) — local path or URL
 
 ---
 
@@ -278,6 +285,8 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createShortVideoCreator({ url, clip_duration_sec })` | Extract viral clips |
 | `client.createBroll({ url })` | Insert B-roll stock footage |
 | `client.createYouTubeDownloader({ url })` | Download YouTube video |
+| `client.createVoiceChanger({ source_audio_url, target_voice_url? })` | Change/clone voice in audio |
+| `client.createImageToGif({ image_url })` | Convert image to animated GIF |
 
 ---
 
@@ -307,6 +316,8 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createShortVideoCreator(params, opts?)` | ✅ default | Extract viral clips |
 | `client.createBroll(params, opts?)` | ✅ default | Insert B-roll |
 | `client.createYouTubeDownloader(params, opts?)` | ✅ default | Download YouTube |
+| `client.createVoiceChanger(params, opts?)` | ✅ default | Change/clone voice in audio |
+| `client.createImageToGif(params)` | ✅ sync | Convert image to animated GIF |
 | `client.pollUntilComplete(id, type)` | — | Manual polling |
 
 **WaitOptions**: `{ waitForCompletion?: boolean, output?: string, timeoutMs?: number }`

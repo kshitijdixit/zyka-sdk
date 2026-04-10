@@ -363,12 +363,24 @@ export function registerGenerateApps(generate: Command): void {
 
   generate
     .command('video-dubbing')
-    .description('Dub a video to another language')
+    .description('Dub a video to another language (models: heygen, elevenlabs, sarvam)')
     .requiredOption('--url <path>', 'Video URL or local path')
-    .requiredOption('--language <code>', 'Output language (e.g. Hindi (India), Spanish, French)')
-    .option('--mode <speed|precision>', 'Processing mode: speed or precision')
-    .option('--enable-caption', 'Add caption overlay to dubbed video')
-    .option('--audio-only', 'Translate audio only (no lip sync)')
+    .requiredOption('--language <code>', 'Output language (heygen: "Hindi (India)", elevenlabs: "hi", sarvam: "Hindi")')
+    .option('--model <model>', 'Dubbing model: heygen (default), elevenlabs, sarvam')
+    // HeyGen-specific
+    .option('--mode <speed|precision>', '(heygen) Processing mode: speed or precision')
+    .option('--enable-caption', '(heygen) Add caption overlay to dubbed video')
+    .option('--audio-only', '(heygen) Translate audio only, keep original video')
+    .option('--enable-speech-enhancement', '(heygen) Clean up audio quality')
+    // ElevenLabs + Sarvam shared
+    .option('--source-lang <code>', '(elevenlabs/sarvam) Source language code or name')
+    .option('--num-speakers <n>', '(elevenlabs/sarvam) Number of speakers in the video')
+    // ElevenLabs-specific
+    .option('--highest-resolution', '(elevenlabs) Output at maximum resolution')
+    .option('--drop-background-audio', '(elevenlabs) Strip background audio from output')
+    .option('--use-profanity-filter', '(elevenlabs) Filter profanity from output')
+    // Sarvam-specific
+    .option('--genre <genre>', '(sarvam) Content genre: general, news, entertainment, education, sports, religious')
     .option('--title <title>', 'Title for the job')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
@@ -378,9 +390,21 @@ export function registerGenerateApps(generate: Command): void {
       console.log('\n🌍 Dubbing video...');
       try {
         const params: any = { video_url: opts.url, output_language: opts.language };
+        if (opts.model) params.model = opts.model;
+        // HeyGen
         if (opts.mode) params.mode = opts.mode;
         if (opts.enableCaption) params.enable_caption = true;
         if (opts.audioOnly) params.translate_audio_only = true;
+        if (opts.enableSpeechEnhancement) params.enable_speech_enhancement = true;
+        // Shared
+        if (opts.sourceLang) params.source_lang = opts.sourceLang;
+        if (opts.numSpeakers) params.num_speakers = parseInt(opts.numSpeakers as string, 10);
+        // ElevenLabs
+        if (opts.highestResolution) params.highest_resolution = true;
+        if (opts.dropBackgroundAudio) params.drop_background_audio = true;
+        if (opts.useProfanityFilter) params.use_profanity_filter = true;
+        // Sarvam
+        if (opts.genre) params.genre = opts.genre;
         if (opts.title) params.title = opts.title;
         const result = await client.createVideoDubbing(params, {
           waitForCompletion: opts.wait !== false,
@@ -500,9 +524,10 @@ export function registerGenerateApps(generate: Command): void {
   generate
     .command('voice-changer')
     .description('Change the voice in an audio file')
-    .requiredOption('--audio <path>', 'Audio URL or local path to transform')
+    .requiredOption('--audio <path>', 'Source audio URL or local path to transform')
     .option('--voice-id <id>', 'Target voice ID')
-    .option('--voice <path>', 'Reference voice audio URL or local path (for cloning)')
+    .option('--voice <path>', 'Target reference voice audio URL or local path (for cloning)')
+    .option('--voice-strength <n>', 'Voice strength for cloning (0-1, default 1.0)')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
     .action(async (opts: Record<string, string | boolean>) => {
@@ -510,13 +535,33 @@ export function registerGenerateApps(generate: Command): void {
       const client = new ZykaClient();
       console.log('\n🎙️  Changing voice...');
       try {
-        const params: any = { audio_url: opts.audio };
+        const params: any = { source_audio_url: opts.audio };
         if (opts.voiceId) params.voice_id = opts.voiceId;
-        if (opts.voice) params.actual_voice_url = opts.voice;
+        if (opts.voice) params.target_voice_url = opts.voice;
+        if (opts.voiceStrength) params.voice_strength = parseFloat(opts.voiceStrength as string);
         const result = await client.createVoiceChanger(params, {
           waitForCompletion: opts.wait !== false,
           output: opts.output as string | undefined,
         });
+        printResult(result, opts);
+      } catch (err: any) { console.error(`\n❌ Error: ${err.message}\n`); process.exit(1); }
+    });
+
+  generate
+    .command('image-to-gif')
+    .description('Convert an image to an animated GIF')
+    .requiredOption('--image <path>', 'Image URL or local path')
+    .option('-o, --output <path>', 'Download result to this file path')
+    .action(async (opts: Record<string, string | boolean>) => {
+      const { ZykaClient } = await import('zyka-sdk');
+      const client = new ZykaClient();
+      console.log('\n🎞️  Converting image to GIF...');
+      try {
+        const result = await client.createImageToGif({ image_url: opts.image as string });
+        if (opts.output) {
+          const { downloadFile } = await import('zyka-sdk');
+          if (result.outputUrl) await downloadFile(result.outputUrl, opts.output as string);
+        }
         printResult(result, opts);
       } catch (err: any) { console.error(`\n❌ Error: ${err.message}\n`); process.exit(1); }
     });

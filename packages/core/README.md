@@ -471,6 +471,7 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createHoliSpecial()`       | Apply Holi color effect to an image    | `HoliSpecialParams`                       | `client.createHoliSpecial({ image })`                             |
 | `createSimpleApp()`         | Run a simple app on an image           | `SimpleAppParams`                         | `client.createSimpleApp({ image, app_id: '...' })`                |
 | `createVoiceChanger()`      | Change voice in an audio clip          | `VoiceChangerParams`, `WaitOptions?`      | `client.createVoiceChanger({ audio_url, voice_id: '...' })`       |
+| `createImageToGif()`        | Convert an image to an animated GIF    | `ImageToGifParams`                        | `client.createImageToGif({ image: './photo.png' })`               |
 
 ### Composition Helpers
 
@@ -488,7 +489,7 @@ console.log(result.scenes["hero-image"].outputUrl);
 
 | Category    | Examples                                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`                                                           |
+| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`                                                 |
 | Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `kling`, `grok_imagine`, `zyka_helion` |
 | Audio / TTS | `elevenlabs`, `qwen3`, `chatterbox`, `minimax`, `voxcpm`, `moss-tts`, `fish-audio`                               |
 
@@ -537,6 +538,7 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | `grok-imagine-video`          | `grok`       | xAI       | Text-to-video, image-to-video             |
 | `ltx-2.3-text-to-video`       | `ltx`        | LTX       | Text-to-video                             |
 | `ltx-2.3-image-to-video`      | `ltx`        | LTX       | Image-to-video                            |
+| `aurora`                       | `aurora`     | Sync Labs | Lip sync (video/image + audio)            |
 
 ### Image Models
 
