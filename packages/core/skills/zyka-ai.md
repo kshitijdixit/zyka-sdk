@@ -233,7 +233,7 @@ const client = new ZykaClient();
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
 | Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
-| Image to GIF | `createImageToGif()` | `{ image_url }` |
+| Image to SVG | `createImageToSvg()` | `{ image_url }` |
 
 ---
 

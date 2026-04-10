@@ -824,8 +824,8 @@ export interface VoiceChangerParams {
   [key: string]: unknown;
 }
 
-export interface ImageToGifParams {
-  /** URL or local path of the image to convert to animated GIF */
+export interface ImageToSvgParams {
+  /** URL or local path of the image to convert to SVG vector */
   image_url: string;
   [key: string]: unknown;
 }
@@ -853,7 +853,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'image-to-gif';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'image-to-svg';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

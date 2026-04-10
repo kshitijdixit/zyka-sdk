@@ -244,12 +244,12 @@ const client = new ZykaClient();
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
 | Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
-| Image to GIF | `createImageToGif()` | `{ image_url }` |
+| Image to SVG | `createImageToSvg()` | `{ image_url }` |
 
 ### CLI App Commands
 ```bash
 npx zyka generate voice-changer --audio ./input.mp3 --voice ./reference.mp3 -o ./output.mp3
-npx zyka generate image-to-gif --image ./photo.png -o ./animated.gif
+npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
 npx zyka generate upscale --image ./photo.jpg --resolution 4k -o ./upscaled.jpg
 npx zyka generate face-swap --type image --url ./target.jpg --face ./face.jpg -o ./result.jpg
 npx zyka generate caption --url ./video.mp4 --language en -o ./captioned.mp4

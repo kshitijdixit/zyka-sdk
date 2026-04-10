@@ -30,7 +30,7 @@ import type {
   HoliSpecialParams,
   SimpleAppParams,
   VoiceChangerParams,
-  ImageToGifParams,
+  ImageToSvgParams,
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
@@ -758,14 +758,14 @@ export class ZykaClient {
     return normalizeResult(res.data || {}, 'simple-app');
   }
 
-  async createImageToGif(params: ImageToGifParams): Promise<GenerationResult> {
+  async createImageToSvg(params: ImageToSvgParams): Promise<GenerationResult> {
     const resolved = { ...params } as Record<string, unknown>;
     resolved.image_url = await resolveToUrl(params.image_url, this.baseUrl, this.token);
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST', path: '/api/apps/image-to-vector/create',
       body: resolved, token: this.token, baseUrl: this.baseUrl,
     });
-    return normalizeResult(res.data || {}, 'image-to-gif');
+    return normalizeResult(res.data || {}, 'image-to-svg');
   }
 
   async createVoiceChanger(params: VoiceChangerParams, options?: WaitOptions): Promise<GenerationResult> {

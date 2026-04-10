@@ -471,7 +471,7 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createHoliSpecial()`       | Apply Holi color effect to an image    | `HoliSpecialParams`                       | `client.createHoliSpecial({ image })`                             |
 | `createSimpleApp()`         | Run a simple app on an image           | `SimpleAppParams`                         | `client.createSimpleApp({ image, app_id: '...' })`                |
 | `createVoiceChanger()`      | Change voice in an audio clip          | `VoiceChangerParams`, `WaitOptions?`      | `client.createVoiceChanger({ audio_url, voice_id: '...' })`       |
-| `createImageToGif()`        | Convert an image to an animated GIF    | `ImageToGifParams`                        | `client.createImageToGif({ image: './photo.png' })`               |
+| `createImageToSvg()`        | Convert an image to an SVG vector    | `ImageToSvgParams`                        | `client.createImageToSvg({ image: './photo.png' })`               |
 
 ### Composition Helpers
 

@@ -59,7 +59,7 @@ export type {
   HoliSpecialParams,
   SimpleAppParams,
   VoiceChangerParams,
-  ImageToGifParams,
+  ImageToSvgParams,
   WaitOptions,
   GenerationResult,
   GenerationType,

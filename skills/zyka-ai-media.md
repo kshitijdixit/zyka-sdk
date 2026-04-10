@@ -249,8 +249,8 @@ await client.createYouTubeDownloader({ url: 'https://youtube.com/watch?v=...', q
 // Voice changer — clone/transform voice
 await client.createVoiceChanger({ source_audio_url: 'https://audio.mp3', target_voice_url: 'https://voice.mp3' });
 
-// Image to animated GIF
-await client.createImageToGif({ image_url: 'https://photo.png' });
+// Image to SVG vector
+await client.createImageToSvg({ image_url: 'https://photo.png' });
 ```
 
 ---

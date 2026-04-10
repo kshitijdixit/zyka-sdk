@@ -286,7 +286,7 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createBroll({ url })` | Insert B-roll stock footage |
 | `client.createYouTubeDownloader({ url })` | Download YouTube video |
 | `client.createVoiceChanger({ source_audio_url, target_voice_url? })` | Change/clone voice in audio |
-| `client.createImageToGif({ image_url })` | Convert image to animated GIF |
+| `client.createImageToSvg({ image_url })` | Convert image to SVG vector |
 
 ---
 
@@ -317,7 +317,7 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createBroll(params, opts?)` | ✅ default | Insert B-roll |
 | `client.createYouTubeDownloader(params, opts?)` | ✅ default | Download YouTube |
 | `client.createVoiceChanger(params, opts?)` | ✅ default | Change/clone voice in audio |
-| `client.createImageToGif(params)` | ✅ sync | Convert image to animated GIF |
+| `client.createImageToSvg(params)` | ✅ sync | Convert image to SVG vector |
 | `client.pollUntilComplete(id, type)` | — | Manual polling |
 
 **WaitOptions**: `{ waitForCompletion?: boolean, output?: string, timeoutMs?: number }`

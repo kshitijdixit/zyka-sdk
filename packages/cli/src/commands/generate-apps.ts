@@ -548,16 +548,16 @@ export function registerGenerateApps(generate: Command): void {
     });
 
   generate
-    .command('image-to-gif')
-    .description('Convert an image to an animated GIF')
+    .command('image-to-svg')
+    .description('Convert an image to an SVG vector')
     .requiredOption('--image <path>', 'Image URL or local path')
     .option('-o, --output <path>', 'Download result to this file path')
     .action(async (opts: Record<string, string | boolean>) => {
       const { ZykaClient } = await import('zyka-sdk');
       const client = new ZykaClient();
-      console.log('\n🎞️  Converting image to GIF...');
+      console.log('\n🖼️  Converting image to SVG...');
       try {
-        const result = await client.createImageToGif({ image_url: opts.image as string });
+        const result = await client.createImageToSvg({ image_url: opts.image as string });
         if (opts.output) {
           const { downloadFile } = await import('zyka-sdk');
           if (result.outputUrl) await downloadFile(result.outputUrl, opts.output as string);
