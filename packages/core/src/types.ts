@@ -500,15 +500,33 @@ export interface TTSParams {
     speed?: number;
     vol?: number;
     pitch?: number;
+    /** Emotion: neutral | happy | sad | angry | fearful | disgusted | surprised */
+    emotion?: 'neutral' | 'happy' | 'sad' | 'angry' | 'fearful' | 'disgusted' | 'surprised';
+    english_normalization?: boolean;
   };
   /** MiniMax audio setting */
   audio_setting?: {
     format?: 'mp3' | 'pcm' | 'flac';
     sample_rate?: number;
     bitrate?: number;
+    /** 1 = mono, 2 = stereo */
+    channel?: 1 | 2;
   };
   /** MiniMax language boost */
   language_boost?: string;
+  /** MiniMax loudness normalization */
+  normalization_setting?: {
+    enabled?: boolean;
+    target_loudness?: number;
+    target_range?: number;
+    target_peak?: number;
+  };
+  /** MiniMax voice modification — pitch/intensity/timbre each -100 to 100 */
+  voice_modify?: {
+    pitch?: number;
+    intensity?: number;
+    timbre?: number;
+  };
 
   // ── MOSS-TTS-specific ──
   /** MOSS-TTS voice strength (0-1, default 1.0) */

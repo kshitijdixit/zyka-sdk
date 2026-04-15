@@ -11,6 +11,19 @@ export function registerGenerateTTS(generate: Command): void {
     .option('--name <name>', 'Display name for this TTS generation')
     .option('--language <code>', 'Language code (qwen3, minimax)')
     .option('--language-boost <code>', 'Language boost code (minimax)')
+    // MiniMax voice_setting options
+    .option('--emotion <emotion>', 'MiniMax emotion: neutral | happy | sad | angry | fearful | disgusted | surprised')
+    .option('--english-normalization', 'MiniMax enable english normalization (boolean flag)')
+    .option('--channel <n>', 'MiniMax audio channel: 1 (mono) | 2 (stereo)')
+    // MiniMax normalization_setting options
+    .option('--normalization-enabled', 'MiniMax normalization enabled (boolean flag)')
+    .option('--normalization-target-loudness <n>', 'MiniMax normalization target loudness (e.g. -18)')
+    .option('--normalization-target-range <n>', 'MiniMax normalization target range (e.g. 8)')
+    .option('--normalization-target-peak <n>', 'MiniMax normalization target peak (e.g. -0.5)')
+    // MiniMax voice_modify options
+    .option('--voice-modify-pitch <n>', 'MiniMax voice modify pitch (-100 to 100)')
+    .option('--voice-modify-intensity <n>', 'MiniMax voice modify intensity (-100 to 100)')
+    .option('--voice-modify-timbre <n>', 'MiniMax voice modify timbre (-100 to 100)')
     // Qwen3 options
     .option('--generation-type <type>', 'Qwen3 generation type: voice_design, voice_clone, custom_voice')
     .option('--voice-description <text>', 'Qwen3 voice description (for voice_design)')
@@ -43,6 +56,42 @@ export function registerGenerateTTS(generate: Command): void {
       if (opts.name) params.name = opts.name;
       if (opts.language) params.language = opts.language;
       if (opts.languageBoost) params.language_boost = opts.languageBoost;
+
+      // MiniMax voice_setting sub-fields
+      if (opts.emotion || opts.englishNormalization !== undefined) {
+        const vs = (params.voice_setting as Record<string, unknown>) ?? {};
+        if (opts.emotion) vs.emotion = opts.emotion;
+        if (opts.englishNormalization) vs.english_normalization = true;
+        params.voice_setting = vs;
+      }
+      // MiniMax audio_setting channel
+      if (opts.channel) {
+        const as_ = (params.audio_setting as Record<string, unknown>) ?? {};
+        as_.channel = parseInt(opts.channel as string, 10);
+        params.audio_setting = as_;
+      }
+      // MiniMax normalization_setting
+      if (
+        opts.normalizationEnabled ||
+        opts.normalizationTargetLoudness ||
+        opts.normalizationTargetRange ||
+        opts.normalizationTargetPeak
+      ) {
+        params.normalization_setting = {
+          ...(opts.normalizationEnabled ? { enabled: true } : {}),
+          ...(opts.normalizationTargetLoudness ? { target_loudness: parseFloat(opts.normalizationTargetLoudness as string) } : {}),
+          ...(opts.normalizationTargetRange ? { target_range: parseFloat(opts.normalizationTargetRange as string) } : {}),
+          ...(opts.normalizationTargetPeak ? { target_peak: parseFloat(opts.normalizationTargetPeak as string) } : {}),
+        };
+      }
+      // MiniMax voice_modify
+      if (opts.voiceModifyPitch || opts.voiceModifyIntensity || opts.voiceModifyTimbre) {
+        params.voice_modify = {
+          ...(opts.voiceModifyPitch ? { pitch: parseFloat(opts.voiceModifyPitch as string) } : {}),
+          ...(opts.voiceModifyIntensity ? { intensity: parseFloat(opts.voiceModifyIntensity as string) } : {}),
+          ...(opts.voiceModifyTimbre ? { timbre: parseFloat(opts.voiceModifyTimbre as string) } : {}),
+        };
+      }
       if (opts.generationType) params.generation_type = opts.generationType;
       if (opts.voiceDescription) params.voice_description = opts.voiceDescription;
       if (opts.speaker) params.speaker = opts.speaker;
