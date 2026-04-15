@@ -1,7 +1,7 @@
-<!-- zyka-skill-version: 0.3.0 -->
+<!-- zyka-skill-version: 0.4.3 -->
 ---
 name: zyka-ai
-description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
+description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
 ---
 
 # Zyka AI Media Generation
@@ -45,14 +45,21 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | Kling O3 | `kling` | `-s kling-o3` or `kling-o3-pro`, `-d 3-15` |
 | Kling Omni | `kling` | `-s kling-video-o1`, `-d 3-10` |
 | Kling Multi-Image | `kling` | `-s multi-image-to-video` (pass image_list via SDK) |
-| ByteDance Seedance | `bytedance` | `-s "Seedance V1.5 Pro"`, `-d 4-12`, `--resolution 720p` |
-| ByteDance OmniHuman | `bytedance` | `-s "OmniHuman v1.5"`, `--image ./face.jpg --audio ./speech.mp3` |
+| ByteDance Seedance V1.5 Pro | `bytedance` | `-s "Seedance V1.5 Pro"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance Seedance 2.0 | `bytedance` | `-s "Seedance 2.0"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance Seedance 2.0 Fast | `bytedance` | `-s "Seedance 2.0 Fast"`, `-d 4-12`, `--resolution 720p` |
+| ByteDance OmniHuman | `bytedance` | `-s "OmniHuman"`, `--image ./face.jpg --audio ./speech.mp3` |
+| ByteDance OmniHuman v1.5 | `bytedance` | `-s "OmniHuman v1.5"`, `--image ./face.jpg --audio ./speech.mp3` |
 | Alibaba WAN T2V | `wan` | `-s wan-2-6-t2v`, `-d 5/10/15`, `--size 1280*720` |
+| Alibaba WAN 2.7 | `wan` | `-s wan-2-7`, `-d 5/10/15`, `--size 1280*720` |
 | Alibaba WAN I2V | `wan` | `-s wan-2-6-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
+| Alibaba WAN I2V 2.5 | `wan` | `-s wan-2-5-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
 | WAN Animate Replace | `wan` | `-s wan-v2-2-animate-replace`, `--video ./vid.mp4 --image ./char.png` |
 | WAN Animate Move | `wan` | `-s wan-v2-2-animate-move`, `--video ./vid.mp4 --image ./char.png` |
 | Talking Head | `infinite_talk` | `--image ./face.jpg --audio ./speech.mp3` |
-| Aurora (Lip Sync) | `aurora` | `--video ./face.mp4 --audio ./speech.mp3` |
+| Aurora (Lip Sync) | `aurora` | `--video ./face.mp4 --audio ./speech.mp3`, `--audio-guidance-scale 7` |
+| LTX Video T2V | `ltx` | `-s ltx-2.3-text-to-video` |
+| LTX Video I2V | `ltx` | `-s ltx-2.3-image-to-video`, `--image ./img.jpg` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
 
 ### Video Examples
@@ -72,9 +79,19 @@ npx zyka generate video -m kling -s kling-v2-master -p "gentle zoom in with wind
 npx zyka generate video -m infinite_talk -p "lip sync" --image ./face.jpg --audio ./speech.mp3 -o ./talking.mp4
 ```
 
+**Aurora lip sync (video + audio):**
+```bash
+npx zyka generate video -m aurora --video ./face.mp4 --audio ./speech.mp3 -o ./lipsync.mp4
+```
+
 **First/last frame interpolation:**
 ```bash
 npx zyka generate video -m veo -s veo-3.1-generate-001 -p "smooth transition" --first-frame ./start.jpg --last-frame ./end.jpg -d 8 -a 16:9 -o ./transition.mp4
+```
+
+**LTX video:**
+```bash
+npx zyka generate video -m ltx -s ltx-2.3-text-to-video -p "A flowing river through autumn forest" -o ./ltx.mp4
 ```
 
 **Grok video:**
@@ -84,7 +101,7 @@ npx zyka generate video -m grok -p "Medieval knight in mystical forest" -d 6 --r
 
 **WAN animate replace (swap character in video):**
 ```bash
-npx zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp4 --image ./new-character.png --resolution 480p -o ./swapped.mp4
+npx zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp4 --image ./new-character.png -o ./swapped.mp4
 ```
 
 ---
@@ -107,7 +124,8 @@ npx zyka generate image -m MODEL -p "prompt" [options]
 | GPT Image 1.5 | `gpt_image_1_5` | Latest OpenAI |
 | Flux Schnell | `flux_1_schnell` | Fast |
 | Flux 2 Dev | `flux_2_dev` | High quality |
-| Kling Image | `kling` | `-s kling-v2`, `kling-image-v3`, `omni-image`, `multi-image-to-image` |
+| Flux 2 Klein 9B | `flux_2_klein_9b` | Compact high quality |
+| Kling Image | `kling` | `-s kling-v1`, `kling-v2`, `kling-image-v3`, `kling-image-v3-text-to-image`, `omni-image`, `kling-image-o1`, `multi-image-to-image` |
 | SD XL | `stable_diffusion_xl_base_1_0` | `--negative-prompt "blurry"` |
 | SD img2img | `stable_diffusion_v1_5_img2img` | Needs `--image` |
 | Lucid Origin | `lucid_origin` | Leonardo AI |
@@ -196,6 +214,11 @@ npx zyka generate tts --provider fish-audio --voice ./sample.wav --script "Hello
 npx zyka generate tts --provider minimax --script "Hello! Welcome to MiniMax TTS." -o ./minimax.mp3
 ```
 
+**MiniMax with emotion and stereo:**
+```bash
+npx zyka generate tts --provider minimax --script "Hello!" --emotion happy --channel 2 -o ./minimax.mp3
+```
+
 ---
 
 ## AI Apps (via SDK)
@@ -220,6 +243,8 @@ const client = new ZykaClient();
 | 9 Shorts | `createNineShorts()` | `{ image }` |
 | Zooms | `createZooms()` | `{ image }` |
 | Story Generator | `createStoryGenerator()` | `{ image }` |
+| Holi Special | `createHoliSpecial()` | `{ image }` |
+| Simple App | `createSimpleApp()` | `{ image, app_id?, prompt? }` |
 
 ### Video Apps
 | App | Method | Params |
@@ -228,12 +253,42 @@ const client = new ZykaClient();
 | Video to Script | `createVideoToScript()` | `{ url, script_style?: 'general'/'screenplay'/'blog_post'/'social_media'/'documentary' }` |
 | Video Cleaner | `createVideoCleaner()` | `{ url, language? }` |
 | Video Upscaler | `createVideoUpscaler()` | `{ video_url, target_resolution: '1080p'/'2k'/'4k', target_fps: '30fps'/'60fps' }` |
-| Video Dubbing | `createVideoDubbing()` | `{ video_url, output_language: 'Hindi (India)' }` |
+| Video Dubbing (HeyGen) | `createVideoDubbing()` | `{ video_url, model: 'heygen', output_language: 'Hindi (India)', mode?, enable_caption?, enable_speech_enhancement?, translate_audio_only? }` |
+| Video Dubbing (ElevenLabs) | `createVideoDubbing()` | `{ video_url, model: 'elevenlabs', output_language: 'hi', source_lang?, num_speakers?, highest_resolution?, drop_background_audio?, use_profanity_filter? }` |
+| Video Dubbing (Sarvam) | `createVideoDubbing()` | `{ video_url, model: 'sarvam', output_language: 'Hindi' (or comma-separated), source_lang?, num_speakers?, genre?: 'general'/'news'/'entertainment'/'education'/'sports'/'religious' }` |
+| Dubbing Languages | `getVideoDubbingLanguages(model)` | model: `'heygen'`/`'elevenlabs'`/`'sarvam'` — returns supported languages |
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
 | Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
 | Image to SVG | `createImageToSvg()` | `{ image_url }` |
+
+### CLI App Commands
+```bash
+npx zyka generate upscale --image ./photo.jpg --resolution 4k -o ./upscaled.jpg
+npx zyka generate face-swap --type image --url ./target.jpg --face ./face.jpg -o ./result.jpg
+npx zyka generate skin-enhancer --image ./photo.jpg --type perfect_skin -o ./enhanced.jpg
+npx zyka generate virtual-try-on --human ./me.jpg --cloth ./dress.jpg -o ./tryon.jpg
+npx zyka generate outfit-swap --user-image ./me.jpg --character-image ./celeb.jpg -o ./outfit.jpg
+npx zyka generate behind-the-scene --image ./photo.jpg --type image -o ./scene.jpg
+npx zyka generate nine-shorts --image ./photo.jpg -o ./angles.jpg
+npx zyka generate zooms --image ./photo.jpg -o ./zooms.jpg
+npx zyka generate story-generator --image ./photo.jpg -o ./story.jpg
+npx zyka generate holi-special --image ./photo.jpg -o ./holi.jpg
+npx zyka generate simple-app --image ./photo.jpg --app-id my-app -o ./result.jpg
+npx zyka generate caption --url ./video.mp4 --language en -o ./captioned.mp4
+npx zyka generate video-to-script --url ./video.mp4 --script-style screenplay -o ./script.txt
+npx zyka generate video-cleaner --url ./video.mp4 -o ./cleaned.mp4
+npx zyka generate video-upscaler --url ./video.mp4 --resolution 4k -o ./upscaled.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model heygen --language "Hindi (India)" --mode precision -o ./dubbed.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model elevenlabs --language hi --source-lang en --num-speakers 2 --highest-resolution -o ./dubbed.mp4
+npx zyka generate video-dubbing --url ./video.mp4 --model sarvam --language "Hindi,Tamil" --genre education -o ./dubbed.mp4
+npx zyka generate short-video --url ./long.mp4 --duration auto -o ./clips/
+npx zyka generate broll --url ./video.mp4 -o ./with-broll.mp4
+npx zyka generate youtube-download --url "https://youtube.com/watch?v=..." --quality 720p -o ./video.mp4
+npx zyka generate voice-changer --audio ./input.mp3 --voice ./reference.mp3 -o ./output.mp3
+npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
+```
 
 ---
 
@@ -278,3 +333,6 @@ const client = new ZykaClient();
 | `--style` | DALL-E 3 style: vivid, natural |
 | `-n, --count` | Number of images to generate |
 | `--title` | Title for the generation job |
+| `--audio-guidance-scale` | Aurora lip sync guidance (0-10) |
+| `--emotion` | MiniMax TTS emotion (neutral/happy/sad/angry/fearful/disgusted/surprised) |
+| `--channel` | MiniMax TTS audio channel (1=mono, 2=stereo) |

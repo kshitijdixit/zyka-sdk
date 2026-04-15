@@ -1,6 +1,6 @@
 {
   "name": "zyka-sdk",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Programmatic AI media generation SDK for Zyka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
