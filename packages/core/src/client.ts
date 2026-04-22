@@ -30,6 +30,7 @@ import type {
   HoliSpecialParams,
   SimpleAppParams,
   VoiceChangerParams,
+  VoiceIsolationParams,
   ImageToSvgParams,
   PromptRefinementParams,
   GenerationResult,
@@ -507,7 +508,7 @@ export class ZykaClient {
   // ── App status poller ───────────────────
 
   private async pollAppStatus(
-    statusPath: string,
+    statusPath: string | ((id: string) => string),
     id: string,
     type: GenerationType,
     opts?: WaitOptions
@@ -517,9 +518,10 @@ export class ZykaClient {
     const deadline = Date.now() + timeout;
 
     while (Date.now() < deadline) {
+      const path = typeof statusPath === 'function' ? statusPath(id) : `${statusPath}/${id}`;
       const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
         method: 'GET',
-        path: `${statusPath}/${id}`,
+        path,
         token: this.token,
         baseUrl: this.baseUrl,
       });
@@ -635,9 +637,13 @@ export class ZykaClient {
   }
 
   async createCaptionGenerator(params: CaptionGeneratorParams, options?: WaitOptions): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    if (params.url) resolved.url = await resolveToUrl(params.url, this.baseUrl, this.token);
+    if (params.audio_url) resolved.audio_url = await resolveToUrl(params.audio_url, this.baseUrl, this.token);
+
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST', path: '/api/apps/caption-generator/create',
-      body: params as Record<string, unknown>, token: this.token, baseUrl: this.baseUrl,
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
     });
     const result = normalizeResult(res.data || {}, 'caption-generator');
     if (options?.waitForCompletion !== false) {
@@ -780,7 +786,21 @@ export class ZykaClient {
     });
     const result = normalizeResult(res.data || {}, 'voice-changer');
     if (options?.waitForCompletion !== false) {
-      return this.pollAppStatus('/api/apps/voice-changer/status', result.id, 'voice-changer', options);
+      return this.pollAppStatus((id) => `/api/apps/voice-changer/${id}/status`, result.id, 'voice-changer', options);
+    }
+    return result;
+  }
+
+  async createVoiceIsolation(params: VoiceIsolationParams, options?: WaitOptions): Promise<GenerationResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.source_audio_url = await resolveToUrl(params.source_audio_url, this.baseUrl, this.token);
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/voice-isolation/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    const result = normalizeResult(res.data || {}, 'voice-isolation');
+    if (options?.waitForCompletion !== false) {
+      return this.pollAppStatus((id) => `/api/apps/voice-isolation/${id}/status`, result.id, 'voice-isolation', options);
     }
     return result;
   }

@@ -5,12 +5,13 @@ export function registerGenerateTTS(generate: Command): void {
     .command('tts')
     .description('Generate text-to-speech audio')
     .requiredOption('--script <text>', 'Text to convert to speech')
-    .option('--provider <provider>', 'TTS provider (elevenlabs, qwen3, chatterbox, voxcpm, minimax, moss-tts, fish-audio)', 'elevenlabs')
+    .option('--provider <provider>', 'TTS provider (elevenlabs, qwen3, chatterbox, voxcpm, voxcpm2, minimax, moss-tts, fish-audio, sarvam, gemini-tts)', 'elevenlabs')
     .option('--voice-id <id>', 'Voice ID')
     .option('--voice <path>', 'Voice reference audio URL or local path (for voice cloning)')
     .option('--name <name>', 'Display name for this TTS generation')
     .option('--language <code>', 'Language code (qwen3, minimax)')
     .option('--language-boost <code>', 'Language boost code (minimax)')
+    .option('--model <id>', 'Model ID (elevenlabs: eleven_multilingual_v2/eleven_v3; sarvam: bulbul:v2/v3; gemini-tts: gemini-2.5-flash-preview-tts/gemini-2.5-pro-preview-tts/gemini-3.1-flash-tts-preview)')
     // MiniMax voice_setting options
     .option('--emotion <emotion>', 'MiniMax emotion: neutral | happy | sad | angry | fearful | disgusted | surprised')
     .option('--english-normalization', 'MiniMax enable english normalization (boolean flag)')
@@ -41,6 +42,19 @@ export function registerGenerateTTS(generate: Command): void {
     .option('--prompt-text <text>', 'VoxCPM transcript of reference audio')
     // Fish Audio options
     .option('--reference-id <id>', 'Fish Audio model/voice ID')
+    // VoxCPM2 options
+    .option('--output-format <fmt>', 'VoxCPM2 output format: wav (default) or flac')
+    .option('--cfg-value <n>', 'VoxCPM2 classifier-free guidance (1.0-3.0, default 2.0)')
+    .option('--inference-timesteps <n>', 'VoxCPM2 inference timesteps (5-30, default 10)')
+    // Sarvam options
+    .option('--target-language-code <code>', 'Sarvam target language code (en-IN, hi-IN, ta-IN, te-IN, bn-IN, gu-IN, etc.)')
+    .option('--pitch <n>', 'Sarvam bulbul:v2 pitch (-1 to 1, default 0). Not supported on v3.')
+    .option('--pace <n>', 'Sarvam pace (0.3 to 3, default 1.0)')
+    .option('--loudness <n>', 'Sarvam bulbul:v2 loudness (0 to 3, default 1.0). Not supported on v3.')
+    .option('--speech-sample-rate <n>', 'Sarvam sample rate: 8000, 16000, or 22050 (default 22050)')
+    // Gemini TTS options
+    .option('--voice-name <name>', 'Gemini single-speaker voice (Kore, Puck, Zephyr, Fenrir, etc.)')
+    .option('--speakers <json>', 'Gemini multi-speaker dialogue as JSON array, e.g. [{"speaker":"Joe","voice_name":"Kore"},{"speaker":"Jane","voice_name":"Puck"}]')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
     .action(async (opts: Record<string, string | boolean>) => {
@@ -104,6 +118,28 @@ export function registerGenerateTTS(generate: Command): void {
       if (opts.voiceStrength) params.voice_strength = parseFloat(opts.voiceStrength as string);
       if (opts.promptText) params.prompt_text = opts.promptText;
       if (opts.referenceId) params.reference_id = opts.referenceId;
+      // ElevenLabs / Sarvam / Gemini / VoxCPM2 model selector
+      if (opts.model) params.model = opts.model;
+      // VoxCPM2
+      if (opts.outputFormat) params.output_format = opts.outputFormat;
+      if (opts.cfgValue) params.cfg_value = parseFloat(opts.cfgValue as string);
+      if (opts.inferenceTimesteps) params.inference_timesteps = parseInt(opts.inferenceTimesteps as string, 10);
+      // Sarvam
+      if (opts.targetLanguageCode) params.target_language_code = opts.targetLanguageCode;
+      if (opts.pitch) params.pitch = parseFloat(opts.pitch as string);
+      if (opts.pace) params.pace = parseFloat(opts.pace as string);
+      if (opts.loudness) params.loudness = parseFloat(opts.loudness as string);
+      if (opts.speechSampleRate) params.speech_sample_rate = parseInt(opts.speechSampleRate as string, 10);
+      // Gemini TTS
+      if (opts.voiceName) params.voice_name = opts.voiceName;
+      if (opts.speakers) {
+        try {
+          params.speakers = JSON.parse(opts.speakers as string);
+        } catch {
+          console.error('\n❌ --speakers must be valid JSON, e.g. \'[{"speaker":"Joe","voice_name":"Kore"}]\'\n');
+          process.exit(1);
+        }
+      }
 
       console.log(`\n🔊 Generating TTS with ${params.provider}...`);
       try {

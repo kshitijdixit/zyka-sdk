@@ -459,7 +459,7 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createNineShorts()`        | Generate 9 shot variations             | `NineShortsParams`                        | `client.createNineShorts({ image })`                              |
 | `createZooms()`             | Generate zoom variations               | `ZoomsParams`                             | `client.createZooms({ image })`                                   |
 | `createStoryGenerator()`    | Generate a cinematic story grid        | `StoryGeneratorParams`                    | `client.createStoryGenerator({ image })`                          |
-| `createCaptionGenerator()`  | Add captions to a video                | `CaptionGeneratorParams`, `WaitOptions?`  | `client.createCaptionGenerator({ url })`                          |
+| `createCaptionGenerator()`  | Caption a video or audio file (MP4, SRT, or both) | `CaptionGeneratorParams`, `WaitOptions?`  | `client.createCaptionGenerator({ url, output_mode: 'both' })`           |
 | `createVideoToScript()`     | Convert video to text/script           | `VideoToScriptParams`, `WaitOptions?`     | `client.createVideoToScript({ url })`                             |
 | `createVideoCleaner()`      | Remove fillers or clean a video        | `VideoCleanerParams`, `WaitOptions?`      | `client.createVideoCleaner({ url })`                              |
 | `createVideoUpscaler()`     | Upscale a video                        | `VideoUpscalerParams`, `WaitOptions?`     | `client.createVideoUpscaler({ video_url })`                       |
@@ -470,7 +470,8 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `createYouTubeDownloader()` | Download a YouTube video through Zyka  | `YouTubeDownloaderParams`, `WaitOptions?` | `client.createYouTubeDownloader({ url })`                         |
 | `createHoliSpecial()`       | Apply Holi color effect to an image    | `HoliSpecialParams`                       | `client.createHoliSpecial({ image })`                             |
 | `createSimpleApp()`         | Run a simple app on an image           | `SimpleAppParams`                         | `client.createSimpleApp({ image, app_id: '...' })`                |
-| `createVoiceChanger()`      | Change voice in an audio clip          | `VoiceChangerParams`, `WaitOptions?`      | `client.createVoiceChanger({ audio_url, voice_id: '...' })`       |
+| `createVoiceChanger()`      | ElevenLabs Speech-to-Speech voice transform | `VoiceChangerParams`, `WaitOptions?` | `client.createVoiceChanger({ source_audio_url, target_voice_id: '...' })` |
+| `createVoiceIsolation()`    | Isolate vocals (remove background noise/music) | `VoiceIsolationParams`, `WaitOptions?` | `client.createVoiceIsolation({ source_audio_url: './noisy.mp3' })`      |
 | `createImageToSvg()`        | Convert an image to an SVG vector    | `ImageToSvgParams`                        | `client.createImageToSvg({ image: './photo.png' })`               |
 
 ### Composition Helpers
@@ -490,8 +491,8 @@ console.log(result.scenes["hero-image"].outputUrl);
 | Category    | Examples                                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
 | Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`                                                 |
-| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `kling`, `grok_imagine`, `zyka_helion` |
-| Audio / TTS | `elevenlabs`, `qwen3`, `chatterbox`, `minimax`, `voxcpm`, `moss-tts`, `fish-audio`                               |
+| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `gpt_image_2`, `kling`, `grok_imagine`, `zyka_helion` |
+| Audio / TTS | `elevenlabs`, `qwen3`, `chatterbox`, `minimax`, `voxcpm`, `voxcpm2`, `moss-tts`, `fish-audio`, `sarvam`, `gemini-tts` |
 
 ## Model Lists
 
@@ -555,6 +556,7 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | `gpt-image-1`                   | `gpt_image_1`                   | OpenAI                | Text-to-image                    |
 | `gpt-image-1-mini`              | `gpt_image_1_mini`              | OpenAI                | Text-to-image                    |
 | `gpt-image-1.5`                 | `gpt_image_1_5`                 | OpenAI                | Text-to-image                    |
+| `gpt-image-2`                   | `gpt_image_2`                   | OpenAI                | Text-to-image + edit via `image_list` (up to 16 refs); sizes up to 3840x2160 |
 | `kling-v1`                      | `kling`                         | Kling AI              | Text-to-image                    |
 | `kling-v1-5`                    | `kling`                         | Kling AI              | Text-to-image                    |
 | `kling-v2`                      | `kling`                         | Kling AI              | Text-to-image                    |
@@ -578,13 +580,16 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 
 | SDK String   | Provider          | Supported Feature                            | Notes                                 |
 | ------------ | ----------------- | -------------------------------------------- | ------------------------------------- |
-| `elevenlabs` | ElevenLabs        | Text-to-speech                               | Default provider, requires `voice_id` |
+| `elevenlabs` | ElevenLabs        | Text-to-speech                               | Default. `voice_id` required. `model`: `eleven_multilingual_v2` / `eleven_v3` (inline [bracket] tags) |
 | `qwen3`      | Qwen              | Voice design, voice clone, custom voice      | Flexible speech workflows             |
 | `chatterbox` | Chatterbox        | Voice cloning, expressive speech             | Supports emotion and speed control    |
 | `voxcpm`     | VoxCPM            | Voice cloning                                | Reference-audio-based workflow        |
+| `voxcpm2`    | VoxCPM2           | 30 languages, Basic/Design/Clone             | `output_format`, `cfg_value`, `inference_timesteps` |
 | `minimax`    | MiniMax           | Text-to-speech, preset voices, voice cloning | SDK supports clone-to-TTS flow        |
 | `moss-tts`   | RunPod / MOSS-TTS | Text-to-speech                               | Hosted TTS workflow                   |
 | `fish-audio` | Fish Audio        | Instant voice cloning                        | Good for reference voice generation   |
+| `sarvam`     | Sarvam            | Indian-language TTS (Bulbul v2/v3)           | `target_language_code`, `speaker`, `model` (bulbul:v2/v3), `pace`, `pitch` (v2), `loudness` (v2) |
+| `gemini-tts` | Google Gemini     | Single + multi-speaker TTS (30 voices)       | `voice_name`, `speakers` (max 2), `model`        |
 
 ### Video Dubbing Providers
 

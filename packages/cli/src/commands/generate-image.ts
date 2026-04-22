@@ -4,9 +4,9 @@ export function registerGenerateImage(generate: Command): void {
   generate
     .command('image')
     .description('Generate an image from a text prompt')
-    .requiredOption('-m, --model <model>', 'Image model (nano_banana, dall_e_3, gpt_image_1, flux_1_schnell, flux_2_klein_9b, grok_imagine, zyka_helion, kling, etc.)')
+    .requiredOption('-m, --model <model>', 'Image model (nano_banana, dall_e_3, gpt_image_1, gpt_image_2, flux_1_schnell, flux_2_klein_9b, grok_imagine, zyka_helion, kling, etc.)')
     .requiredOption('-p, --prompt <prompt>', 'Text prompt')
-    .option('-s, --sub-model <sub_model>', 'Model variant (e.g. nano-banana-pro, nano-banana-2, flux-2-klein-9b)')
+    .option('-s, --sub-model <sub_model>', 'Model variant (e.g. nano-banana-pro, nano-banana-2, flux-2-klein-9b, gpt-image-2)')
     .option('--size <size>', 'Output size (e.g. 1024x1024)')
     .option('--aspect-ratio <ratio>', 'Aspect ratio (16:9, 9:16, 1:1, 4:3, 3:4, auto)')
     .option('--image <path>', 'Input image URL or local path (for img2img)')

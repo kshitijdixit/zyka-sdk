@@ -165,6 +165,7 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 | `gpt_image_1` | `background: 'transparent'` supported |
 | `gpt_image_1_mini` | Cheaper variant |
 | `gpt_image_1_5` | Latest |
+| `gpt_image_2` | Next-gen OpenAI. Sizes up to 3840x2160. Edit via `image_list` (up to 16 refs). |
 | `kling` | Sub-models: `kling-v1`, `kling-v1-5`, `kling-v2`, `kling-v2-1`, `kling-image-v3`, `kling-image-v3-text-to-image`, `omni-image`, `kling-image-o1`, `multi-image-to-image` |
 | `stable_diffusion_xl_base_1_0` | SD XL |
 | `stable_diffusion_v1_5_img2img` | Requires `image` |
@@ -181,13 +182,16 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 
 | Provider | Features |
 |---|---|
-| `elevenlabs` | Default. Requires `voice_id` |
+| `elevenlabs` | Default. Requires `voice_id`. `model`: `eleven_multilingual_v2` (default) / `eleven_v3` (inline [bracket] emotion tags) |
 | `qwen3` | voice_design, voice_clone, custom_voice |
 | `chatterbox` | Voice cloning + emotion control |
 | `voxcpm` | Voice cloning |
+| `voxcpm2` | 30 languages. Basic / Voice Design / Controllable / Ultimate. Params: `output_format`, `cfg_value`, `inference_timesteps` |
 | `minimax` | 17 preset voices |
 | `moss-tts` | RunPod-based |
 | `fish-audio` | Fish Audio IVC (instant voice cloning) |
+| `sarvam` | Indian-language Bulbul v2/v3 (46 preset speakers). Params: `target_language_code`, `speaker`, `model` (`bulbul:v2` / `bulbul:v3`), `pitch`, `pace`, `loudness`, `speech_sample_rate` |
+| `gemini-tts` | Google Gemini single / multi-speaker (30 voices). Params: `voice_name`, `speakers` (max 2), `model` (`gemini-2.5-flash-preview-tts` / `gemini-2.5-pro-preview-tts` / `gemini-3.1-flash-tts-preview`) |
 
 ---
 
@@ -276,7 +280,7 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createNineShorts({ image })` | 9 unique shots from different angles |
 | `client.createZooms({ image })` | 9 progressive zoom levels |
 | `client.createStoryGenerator({ image })` | 3x3 cinematic story grid |
-| `client.createCaptionGenerator({ url })` | Auto-caption a video |
+| `client.createCaptionGenerator({ url?, audio_url?, output_mode? })` | Auto-caption a video or audio file (burn MP4, export SRT, or both) |
 | `client.createVideoToScript({ url })` | Extract script from video |
 | `client.createVideoCleaner({ url })` | Remove filler words from video |
 | `client.createVideoUpscaler({ video_url })` | Upscale video to 1080p/2k/4k |
@@ -285,7 +289,8 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createShortVideoCreator({ url, clip_duration_sec })` | Extract viral clips |
 | `client.createBroll({ url })` | Insert B-roll stock footage |
 | `client.createYouTubeDownloader({ url })` | Download YouTube video |
-| `client.createVoiceChanger({ source_audio_url, target_voice_url? })` | Change/clone voice in audio |
+| `client.createVoiceChanger({ source_audio_url, target_voice_id?, voice_id?, model?, remove_background_noise?, voice_settings? })` | ElevenLabs Speech-to-Speech voice transform |
+| `client.createVoiceIsolation({ source_audio_url })` | Strip background noise/music, return clean vocals (ElevenLabs Audio Isolation) |
 | `client.createImageToSvg({ image_url })` | Convert image to SVG vector |
 | `client.createHoliSpecial({ image })` | Holi color-splash effect on image |
 | `client.createSimpleApp({ image, app_id?, prompt? })` | Run a generic app by ID |
@@ -318,7 +323,8 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createShortVideoCreator(params, opts?)` | ✅ default | Extract viral clips |
 | `client.createBroll(params, opts?)` | ✅ default | Insert B-roll |
 | `client.createYouTubeDownloader(params, opts?)` | ✅ default | Download YouTube |
-| `client.createVoiceChanger(params, opts?)` | ✅ default | Change/clone voice in audio |
+| `client.createVoiceChanger(params, opts?)` | ✅ default | Change/clone voice in audio (ElevenLabs S2S) |
+| `client.createVoiceIsolation(params, opts?)` | ✅ default | Isolate vocals (remove background noise/music) |
 | `client.createImageToSvg(params)` | ✅ sync | Convert image to SVG vector |
 | `client.createHoliSpecial(params)` | ✅ sync | Holi color-splash effect |
 | `client.createSimpleApp(params)` | ✅ sync | Run a generic app by ID |

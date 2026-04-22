@@ -263,8 +263,10 @@ export function registerGenerateApps(generate: Command): void {
 
   generate
     .command('caption')
-    .description('Auto-caption a video')
-    .requiredOption('--url <path>', 'Video URL or local path')
+    .description('Auto-caption a video or audio file (burn into MP4 and/or export SRT)')
+    .option('--url <path>', 'Video URL or local path (mutually exclusive with --audio-url)')
+    .option('--audio-url <path>', 'Audio URL or local path (MP3/WAV/M4A). Defaults output_mode to srt.')
+    .option('--output-mode <mode>', 'Output mode: video | srt | both (default: video for --url, srt for --audio-url)')
     .option('--language <code>', 'Language code (e.g. en, hi, es)')
     .option('--title <title>', 'Title for the job')
     .option('-o, --output <path>', 'Download result to this file path')
@@ -272,9 +274,16 @@ export function registerGenerateApps(generate: Command): void {
     .action(async (opts: Record<string, string | boolean>) => {
       const { ZykaClient } = await import('zyka-sdk');
       const client = new ZykaClient();
+      if (!opts.url && !opts.audioUrl) {
+        console.error('\n❌ Must provide either --url (video) or --audio-url (audio file).\n');
+        process.exit(1);
+      }
       console.log('\n📝 Generating captions...');
       try {
-        const params: any = { url: opts.url };
+        const params: any = {};
+        if (opts.url) params.url = opts.url;
+        if (opts.audioUrl) params.audio_url = opts.audioUrl;
+        if (opts.outputMode) params.output_mode = opts.outputMode;
         if (opts.language) params.language = opts.language;
         if (opts.title) params.title = opts.title;
         const result = await client.createCaptionGenerator(params, {
@@ -523,11 +532,16 @@ export function registerGenerateApps(generate: Command): void {
 
   generate
     .command('voice-changer')
-    .description('Change the voice in an audio file')
+    .description('Change the voice in an audio file (ElevenLabs Speech-to-Speech)')
     .requiredOption('--audio <path>', 'Source audio URL or local path to transform')
-    .option('--voice-id <id>', 'Target voice ID')
-    .option('--voice <path>', 'Target reference voice audio URL or local path (for cloning)')
-    .option('--voice-strength <n>', 'Voice strength for cloning (0-1, default 1.0)')
+    .option('--target-voice-id <id>', 'ElevenLabs voice_id (preset or library voice)')
+    .option('--voice-id <uuid>', 'UUID of a stored MyVoice with provider=elevenlabs')
+    .option('--model <id>', 'S2S model: eleven_multilingual_sts_v2 (default) or eleven_english_sts_v2')
+    .option('--remove-background-noise', 'Strip noise from source audio before S2S')
+    .option('--stability <n>', 'Voice setting: stability 0-1')
+    .option('--similarity-boost <n>', 'Voice setting: similarity boost 0-1')
+    .option('--style <n>', 'Voice setting: style 0-1')
+    .option('--use-speaker-boost', 'Voice setting: enable speaker boost')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
     .action(async (opts: Record<string, string | boolean>) => {
@@ -536,13 +550,42 @@ export function registerGenerateApps(generate: Command): void {
       console.log('\n🎙️  Changing voice...');
       try {
         const params: any = { source_audio_url: opts.audio };
+        if (opts.targetVoiceId) params.target_voice_id = opts.targetVoiceId;
         if (opts.voiceId) params.voice_id = opts.voiceId;
-        if (opts.voice) params.target_voice_url = opts.voice;
-        if (opts.voiceStrength) params.voice_strength = parseFloat(opts.voiceStrength as string);
+        if (opts.model) params.model = opts.model;
+        if (opts.removeBackgroundNoise) params.remove_background_noise = true;
+        const vs: Record<string, unknown> = {};
+        if (opts.stability) vs.stability = parseFloat(opts.stability as string);
+        if (opts.similarityBoost) vs.similarity_boost = parseFloat(opts.similarityBoost as string);
+        if (opts.style) vs.style = parseFloat(opts.style as string);
+        if (opts.useSpeakerBoost) vs.use_speaker_boost = true;
+        if (Object.keys(vs).length > 0) params.voice_settings = vs;
         const result = await client.createVoiceChanger(params, {
           waitForCompletion: opts.wait !== false,
           output: opts.output as string | undefined,
         });
+        printResult(result, opts);
+      } catch (err: any) { console.error(`\n❌ Error: ${err.message}\n`); process.exit(1); }
+    });
+
+  generate
+    .command('voice-isolation')
+    .description('Isolate vocals from a noisy audio file (removes background noise/music)')
+    .requiredOption('--audio <path>', 'Source audio URL or local path (WAV/MP3/FLAC/OGG/AAC, max 500MB)')
+    .option('-o, --output <path>', 'Download result to this file path')
+    .option('--no-wait', 'Return immediately without waiting for completion')
+    .action(async (opts: Record<string, string | boolean>) => {
+      const { ZykaClient } = await import('zyka-sdk');
+      const client = new ZykaClient();
+      console.log('\n🔇 Isolating voice...');
+      try {
+        const result = await client.createVoiceIsolation(
+          { source_audio_url: opts.audio as string },
+          {
+            waitForCompletion: opts.wait !== false,
+            output: opts.output as string | undefined,
+          }
+        );
         printResult(result, opts);
       } catch (err: any) { console.error(`\n❌ Error: ${err.message}\n`); process.exit(1); }
     });

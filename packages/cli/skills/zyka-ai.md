@@ -1,4 +1,4 @@
-<!-- zyka-skill-version: 0.4.5 -->
+<!-- zyka-skill-version: 0.4.6 -->
 ---
 name: zyka-ai
 description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
@@ -122,6 +122,7 @@ npx zyka generate image -m MODEL -p "prompt" [options]
 | GPT Image 1 | `gpt_image_1` | `--background transparent`, `--quality auto/low/medium/high` |
 | GPT Image 1 Mini | `gpt_image_1_mini` | Cheaper variant |
 | GPT Image 1.5 | `gpt_image_1_5` | Latest OpenAI |
+| GPT Image 2 | `gpt_image_2` | Next-gen OpenAI. Sizes up to 3840x2160. Edit mode via `image_list` (up to 16 refs). No transparent background. |
 | Flux Schnell | `flux_1_schnell` | Fast |
 | Flux 2 Dev | `flux_2_dev` | High quality |
 | Flux 2 Klein 9B | `flux_2_klein_9b` | Compact high quality |
@@ -184,13 +185,16 @@ npx zyka generate tts --script "text" [options]
 
 | Provider | `--provider` value | Notes |
 |---|---|---|
-| ElevenLabs | `elevenlabs` | Needs `--voice-id` |
+| ElevenLabs | `elevenlabs` | Needs `--voice-id`. `--model eleven_multilingual_v2` (default) or `eleven_v3` (inline [bracket] tags, 70+ languages) |
 | Qwen3 | `qwen3` | Voice design/clone/custom |
 | Chatterbox | `chatterbox` | Clone + emotion tags `[happy]`, `[sad]`, `[angry]`, `[calm]` |
 | VoxCPM | `voxcpm` | Voice cloning only (requires reference audio) |
+| VoxCPM2 | `voxcpm2` | 30 languages. Basic/Design/Clone. `--output-format wav/flac`, `--cfg-value`, `--inference-timesteps` |
 | MiniMax | `minimax` | 17 preset voices (Wise_Woman, Friendly_Person, Deep_Voice_Man, etc.) |
 | MOSS-TTS | `moss-tts` | RunPod-based |
-| Fish Audio | `fish-audio` | Instant voice cloning |
+| Fish Audio | `fish-audio` | Instant voice cloning. Inline `[emotion]` tags (s2-pro). |
+| Sarvam | `sarvam` | Indian-language Bulbul v2/v3. `--target-language-code hi-IN`, `--speaker anushka`, `--model bulbul:v2` (or `bulbul:v3`), `--pace`, `--pitch` (v2 only), `--loudness` (v2 only) |
+| Gemini TTS | `gemini-tts` | 30 voices. Single-speaker via `--voice-name Kore`. Multi-speaker via `--speakers '[{"speaker":"Joe","voice_name":"Kore"}]'`. `--model gemini-2.5-flash-preview-tts` |
 
 ### TTS Examples
 
@@ -217,6 +221,31 @@ npx zyka generate tts --provider minimax --script "Hello! Welcome to MiniMax TTS
 **MiniMax with emotion and stereo:**
 ```bash
 npx zyka generate tts --provider minimax --script "Hello!" --emotion happy --channel 2 -o ./minimax.mp3
+```
+
+**Sarvam (Indian-language Hindi):**
+```bash
+npx zyka generate tts --provider sarvam --model "bulbul:v2" --target-language-code hi-IN --speaker manisha --script "नमस्ते, यह सर्वम का टेस्ट है।" -o ./sarvam.mp3
+```
+
+**Gemini single-speaker with directed emotion:**
+```bash
+npx zyka generate tts --provider gemini-tts --voice-name Kore --script "Say cheerfully: Have a wonderful day!" -o ./gemini.wav
+```
+
+**Gemini multi-speaker dialogue:**
+```bash
+npx zyka generate tts --provider gemini-tts --speakers '[{"speaker":"Joe","voice_name":"Kore"},{"speaker":"Jane","voice_name":"Puck"}]' --script "Joe: Hi Jane!\nJane: Hey Joe, how are you?" -o ./dialogue.wav
+```
+
+**VoxCPM2 (Voice Design — natural-language voice creation):**
+```bash
+npx zyka generate tts --provider voxcpm2 --script "(A cheerful young woman) Welcome to Zyka!" --output-format flac -o ./voxcpm2.flac
+```
+
+**ElevenLabs v3 with inline audio tags:**
+```bash
+npx zyka generate tts --provider elevenlabs --voice-id UgBBYS2sOqTuMpoF3BR0 --model eleven_v3 --script "[excited] We did it! [laughs] This is incredible." -o ./v3.mp3
 ```
 
 ---
@@ -249,7 +278,7 @@ const client = new ZykaClient();
 ### Video Apps
 | App | Method | Params |
 |---|---|---|
-| Caption Generator | `createCaptionGenerator()` | `{ url, language?, caption_style? }` |
+| Caption Generator | `createCaptionGenerator()` | `{ url? (video) OR audio_url? (audio), output_mode?: 'video'/'srt'/'both', language?, caption_style? }` |
 | Video to Script | `createVideoToScript()` | `{ url, script_style?: 'general'/'screenplay'/'blog_post'/'social_media'/'documentary' }` |
 | Video Cleaner | `createVideoCleaner()` | `{ url, language? }` |
 | Video Upscaler | `createVideoUpscaler()` | `{ video_url, target_resolution: '1080p'/'2k'/'4k', target_fps: '30fps'/'60fps' }` |
@@ -260,7 +289,8 @@ const client = new ZykaClient();
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
-| Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_url?, voice_strength? }` |
+| Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_id? (ElevenLabs ID) OR voice_id? (stored MyVoice UUID), model?: 'eleven_multilingual_sts_v2'/'eleven_english_sts_v2', remove_background_noise?, voice_settings? }` |
+| Voice Isolation | `createVoiceIsolation()` | `{ source_audio_url }` — strips background noise/music, returns clean vocals |
 | Image to SVG | `createImageToSvg()` | `{ image_url }` |
 
 ### CLI App Commands
@@ -276,7 +306,9 @@ npx zyka generate zooms --image ./photo.jpg -o ./zooms.jpg
 npx zyka generate story-generator --image ./photo.jpg -o ./story.jpg
 npx zyka generate holi-special --image ./photo.jpg -o ./holi.jpg
 npx zyka generate simple-app --image ./photo.jpg --app-id my-app -o ./result.jpg
-npx zyka generate caption --url ./video.mp4 --language en -o ./captioned.mp4
+npx zyka generate caption --url ./video.mp4 --language en --output-mode video -o ./captioned.mp4
+npx zyka generate caption --audio-url ./audio.mp3 --language en --output-mode srt -o ./subs.srt
+npx zyka generate caption --url ./video.mp4 --output-mode both -o ./captioned.mp4
 npx zyka generate video-to-script --url ./video.mp4 --script-style screenplay -o ./script.txt
 npx zyka generate video-cleaner --url ./video.mp4 -o ./cleaned.mp4
 npx zyka generate video-upscaler --url ./video.mp4 --resolution 4k -o ./upscaled.mp4
@@ -286,7 +318,9 @@ npx zyka generate video-dubbing --url ./video.mp4 --model sarvam --language "Hin
 npx zyka generate short-video --url ./long.mp4 --duration auto -o ./clips/
 npx zyka generate broll --url ./video.mp4 -o ./with-broll.mp4
 npx zyka generate youtube-download --url "https://youtube.com/watch?v=..." --quality 720p -o ./video.mp4
-npx zyka generate voice-changer --audio ./input.mp3 --voice ./reference.mp3 -o ./output.mp3
+npx zyka generate voice-changer --audio ./input.mp3 --target-voice-id UgBBYS2sOqTuMpoF3BR0 -o ./output.mp3
+npx zyka generate voice-changer --audio ./input.mp3 --voice-id my-stored-voice-uuid --model eleven_multilingual_sts_v2 -o ./output.mp3
+npx zyka generate voice-isolation --audio ./noisy.mp3 -o ./clean.mp3
 npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
 ```
 

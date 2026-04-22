@@ -296,8 +296,8 @@ export type ImageModel =
   | 'lucid_origin' | 'phoenix_1_0'
   | 'stable_diffusion_v1_5_img2img' | 'stable_diffusion_xl_base_1_0'
   | 'dall_e_2' | 'dall_e_3'
-  | 'gpt_image_1' | 'gpt_image_1_mini' | 'gpt_image_1_5'
-  | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5'
+  | 'gpt_image_1' | 'gpt_image_1_mini' | 'gpt_image_1_5' | 'gpt_image_2'
+  | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5' | 'gpt-image-2'
   | 'kling' | 'z_image_turbo'
   | 'zyka_helion' | 'grok_imagine' | 'qwen_image_2_pro'
   | string;
@@ -308,7 +308,7 @@ export type ImageSubModel =
   | 'lucid-origin' | 'phoenix-1.0'
   | 'stable-diffusion-v1-5-img2img' | 'stable-diffusion-xl-base-1.0'
   | 'dall-e-2' | 'dall-e-3'
-  | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5'
+  | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5' | 'gpt-image-2'
   | 'kling-v1' | 'kling-v1-5' | 'kling-v2' | 'kling-v2-new' | 'kling-v2-1'
   | 'omni-image' | 'kling-image-o1' | 'multi-image-to-image'
   | 'kling-image-v3' | 'kling-image-v3-text-to-image'
@@ -440,16 +440,20 @@ export interface ImageGenerationParams {
 /**
  * TTS provider.
  *
- * | Provider      | Features                                    |
- * |---------------|---------------------------------------------|
- * | `elevenlabs`  | Default. Requires voice_id from ElevenLabs   |
- * | `qwen3`       | Voice design, voice clone, custom voice      |
- * | `chatterbox`  | Voice cloning with emotion/speed control     |
- * | `voxcpm`      | Voice cloning                                |
- * | `minimax`     | Preset voices, speech 2.8 turbo              |
- * | `moss-tts`    | RunPod-based TTS                             |
+ * | Provider      | Features                                                   |
+ * |---------------|------------------------------------------------------------|
+ * | `elevenlabs`  | Default. Requires voice_id. `model`: v2 (stable) / v3 tags  |
+ * | `qwen3`       | Voice design, voice clone, custom voice                     |
+ * | `chatterbox`  | Voice cloning with emotion/speed control                    |
+ * | `voxcpm`      | Voice cloning                                               |
+ * | `voxcpm2`     | 30 languages. Basic / Voice Design / Controllable / Ultimate |
+ * | `minimax`     | Preset voices, speech 2.8 turbo                             |
+ * | `moss-tts`    | RunPod-based TTS                                            |
+ * | `fish-audio`  | s2-pro with inline [emotion] tags                           |
+ * | `sarvam`      | Indian-language Bulbul v2/v3 (46 preset speakers)           |
+ * | `gemini-tts`  | Google Gemini single-speaker / multi-speaker (30 voices)    |
  */
-export type TTSProvider = 'elevenlabs' | 'qwen3' | 'chatterbox' | 'voxcpm' | 'minimax' | 'moss-tts' | 'fish-audio';
+export type TTSProvider = 'elevenlabs' | 'qwen3' | 'chatterbox' | 'voxcpm' | 'voxcpm2' | 'minimax' | 'moss-tts' | 'fish-audio' | 'sarvam' | 'gemini-tts';
 
 export interface TTSParams {
   /** TTS provider. Default: `'elevenlabs'` */
@@ -544,6 +548,41 @@ export interface TTSParams {
   /** Fish Audio model/voice ID */
   reference_id?: string;
 
+  // ── ElevenLabs / Sarvam / Gemini / VoxCPM2 model selector ──
+  /**
+   * Model identifier (provider-specific).
+   * - **elevenlabs** TTS: `'eleven_multilingual_v2'` (default), `'eleven_v3'` (inline [bracket] tags + 70+ languages)
+   * - **sarvam**: `'bulbul:v2'` (7 speakers, default), `'bulbul:v3'` (39 speakers), `'bulbul:v3-beta'`
+   * - **gemini-tts**: `'gemini-2.5-flash-preview-tts'` (default), `'gemini-2.5-pro-preview-tts'`, `'gemini-3.1-flash-tts-preview'`
+   */
+  model?: string;
+
+  // ── VoxCPM2-specific ──
+  /** VoxCPM2 output format: `'wav'` (default) or `'flac'` */
+  output_format?: 'wav' | 'flac' | string;
+  /** VoxCPM2 classifier-free guidance (1.0-3.0, default 2.0) */
+  cfg_value?: number;
+  /** VoxCPM2 inference timesteps (5-30, default 10; higher = better quality) */
+  inference_timesteps?: number;
+
+  // ── Sarvam-specific ──
+  /** Sarvam target language code (e.g. `'en-IN'`, `'hi-IN'`, `'ta-IN'`, `'te-IN'`, `'bn-IN'`, `'gu-IN'`, etc.) */
+  target_language_code?: string;
+  /** Sarvam Bulbul v2 pitch (-1 to 1, default 0). v3 does NOT support pitch. */
+  pitch?: number;
+  /** Sarvam pace (0.3 to 3, default 1.0) */
+  pace?: number;
+  /** Sarvam Bulbul v2 loudness (0 to 3, default 1.0). v3 does NOT support loudness. */
+  loudness?: number;
+  /** Sarvam audio sample rate: 8000, 16000, or 22050 (default 22050) */
+  speech_sample_rate?: number;
+
+  // ── Gemini TTS-specific ──
+  /** Gemini single-speaker voice name (one of 30 presets: Kore, Puck, Zephyr, Fenrir, etc.). Ignored when `speakers` is provided. */
+  voice_name?: string;
+  /** Gemini multi-speaker dialogue configuration (max 2 speakers). Each entry maps a character name in the script to a Gemini voice. */
+  speakers?: Array<{ speaker: string; voice_name: string }>;
+
   /** Any extra provider-specific params */
   [key: string]: unknown;
 }
@@ -631,13 +670,25 @@ export interface StoryGeneratorParams {
 }
 
 export interface CaptionGeneratorParams {
-  /** URL of the video to process */
-  url: string;
-  /** Title for the video */
+  /** URL of the video to process (mutually exclusive with `audio_url`) */
+  url?: string;
+  /**
+   * URL of an audio file to transcribe (MP3/WAV/M4A, max 100MB).
+   * When provided without `url`, `output_mode` defaults to `'srt'` (subtitles file only).
+   */
+  audio_url?: string;
+  /**
+   * Output mode:
+   * - `'video'` — burn captions into an MP4 (default for video `url`)
+   * - `'srt'` — return an SRT subtitles file (default for `audio_url`)
+   * - `'both'` — video + SRT (video `url` only)
+   */
+  output_mode?: 'video' | 'srt' | 'both';
+  /** Title for the job */
   title?: string;
   /** Language code (e.g. 'en') */
   language?: string;
-  /** Caption style customization */
+  /** Caption style customization (only applies when burning into video) */
   caption_style?: {
     font_family?: string;
     font_size?: number;
@@ -833,12 +884,52 @@ export interface SimpleAppParams {
 export interface VoiceChangerParams {
   /** URL or local path of the source audio to transform */
   source_audio_url: string;
-  /** Target voice ID */
+  /**
+   * UUID of a stored MyVoice (provider='elevenlabs'). Server resolves to its upstream `elevenlabs_voice_id`.
+   * Use this when you have a designed/cloned ElevenLabs voice saved via `/api/voice-clone/voices`.
+   */
   voice_id?: string;
-  /** Reference voice audio URL or local path for voice cloning */
+  /**
+   * ElevenLabs voice_id (string, e.g. `'UgBBYS2sOqTuMpoF3BR0'`) — a preset or any voice from your ElevenLabs library.
+   * Provide either `target_voice_id` OR `voice_id`, not both.
+   */
+  target_voice_id?: string;
+  /**
+   * ElevenLabs Speech-to-Speech model:
+   * - `'eleven_multilingual_sts_v2'` (default) — 70+ languages
+   * - `'eleven_english_sts_v2'` — English-only, slightly higher quality
+   */
+  model?: 'eleven_multilingual_sts_v2' | 'eleven_english_sts_v2' | string;
+  /** Strip noise from source audio before S2S processing (default false) */
+  remove_background_noise?: boolean;
+  /** ElevenLabs voice settings */
+  voice_settings?: {
+    /** 0-1 */
+    stability?: number;
+    /** 0-1 */
+    similarity_boost?: number;
+    /** 0-1 */
+    style?: number;
+    use_speaker_boost?: boolean;
+  };
+  /**
+   * @deprecated Legacy param from the pre-S2S pipeline. The new ElevenLabs Speech-to-Speech
+   * endpoint does NOT accept a reference audio URL — use `target_voice_id` or `voice_id` instead.
+   */
   target_voice_url?: string;
-  /** Voice strength for cloning (0-1, default 1.0) */
+  /**
+   * @deprecated Legacy param from the pre-S2S pipeline. Not used by the new ElevenLabs S2S endpoint.
+   */
   voice_strength?: number;
+  [key: string]: unknown;
+}
+
+export interface VoiceIsolationParams {
+  /**
+   * URL or local path of the noisy source audio. Supported: WAV, MP3, FLAC, OGG, AAC.
+   * Max 500 MB / 1 hour.
+   */
+  source_audio_url: string;
   [key: string]: unknown;
 }
 
@@ -871,7 +962,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'image-to-svg';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'voice-isolation' | 'image-to-svg';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
