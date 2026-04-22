@@ -5,22 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-function main() {
+// Install the skill file into both ~/.claude/skills/ AND ~/.claude/commands/
+// so it's available as a discoverable skill AND as a /zyka-ai slash command.
+function installTo(targetFile, sourceContent, label) {
   try {
-    const claudeSkillsDir = path.join(os.homedir(), '.claude', 'skills');
-    const targetFile = path.join(claudeSkillsDir, 'zyka-ai.md');
+    const dir = path.dirname(targetFile);
 
-    // Locate the skill source file relative to this script
-    // scripts/postinstall.js -> skills/zyka-ai.md
-    const sourceFile = path.join(__dirname, '..', 'skills', 'zyka-ai.md');
-
-    if (!fs.existsSync(sourceFile)) {
-      return;
-    }
-
-    const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
-
-    // Check if target already exists
     if (fs.existsSync(targetFile)) {
       const existingContent = fs.readFileSync(targetFile, 'utf-8');
 
@@ -35,23 +25,46 @@ function main() {
         }
 
         fs.writeFileSync(targetFile, sourceContent, 'utf-8');
-        console.log('[zyka] Updated Claude Code skill zyka-ai to latest version.');
+        console.log(`[zyka] Updated Claude Code ${label} zyka-ai to latest version.`);
         return;
       }
 
       // No version marker — user-customized file, don't touch it
-      console.log('[zyka] Skipped skill install: ~/.claude/skills/zyka-ai.md exists (custom).');
+      console.log(`[zyka] Skipped ${label} install: ${targetFile} exists (custom).`);
       return;
     }
 
     // Create directory tree if needed
-    fs.mkdirSync(claudeSkillsDir, { recursive: true });
+    fs.mkdirSync(dir, { recursive: true });
 
-    // Write the skill file
+    // Write the file
     fs.writeFileSync(targetFile, sourceContent, 'utf-8');
-    console.log('[zyka] Installed Claude Code skill: /zyka-ai (available in all projects!)');
+    console.log(`[zyka] Installed Claude Code ${label}: /zyka-ai`);
   } catch (err) {
     // Never crash the install — postinstall failures block npm install
+  }
+}
+
+function main() {
+  try {
+    const claudeDir = path.join(os.homedir(), '.claude');
+    const skillsTarget = path.join(claudeDir, 'skills', 'zyka-ai.md');
+    const commandsTarget = path.join(claudeDir, 'commands', 'zyka-ai.md');
+
+    // Locate the skill source file relative to this script
+    // scripts/postinstall.js -> skills/zyka-ai.md
+    const sourceFile = path.join(__dirname, '..', 'skills', 'zyka-ai.md');
+
+    if (!fs.existsSync(sourceFile)) {
+      return;
+    }
+
+    const sourceContent = fs.readFileSync(sourceFile, 'utf-8');
+
+    installTo(skillsTarget, sourceContent, 'skill');
+    installTo(commandsTarget, sourceContent, 'command');
+  } catch (err) {
+    // Never crash the install
   }
 }
 

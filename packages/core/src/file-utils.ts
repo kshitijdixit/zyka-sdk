@@ -200,7 +200,15 @@ function doDownload(url: string, outputPath: string): Promise<void> {
       }
 
       const getter = reqUrl.startsWith('https:') ? https : http;
-      getter.get(reqUrl, (res) => {
+      // CloudFront's WAF blocks Node's default `User-Agent: node`. Send browser-like
+      // headers so CDN edge accepts the request — otherwise every download 403s.
+      const headers = {
+        'User-Agent': 'zyka-sdk/0.4.5 (+https://zyka.ai)',
+        'Referer': 'https://zyka.ai/',
+        'Origin': 'https://zyka.ai',
+        'Accept': 'image/*,video/*,audio/*,*/*;q=0.8',
+      };
+      getter.get(reqUrl, { headers }, (res) => {
         // Follow redirects
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           doRequest(res.headers.location, redirectCount + 1);
