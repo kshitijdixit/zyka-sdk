@@ -1,4 +1,4 @@
-<!-- zyka-skill-version: 0.4.6 -->
+<!-- zyka-skill-version: 0.4.11 -->
 ---
 name: zyka-ai
 description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
@@ -10,9 +10,11 @@ Generate AI videos, images, voice, and use AI-powered apps directly from the ter
 
 ## Setup
 
+Install the CLI once before using:
+
 ```bash
-npx zyka --help          # no install needed
-npm install -g zyka      # or install globally
+npm install -g zyka            # one-time install (latest)
+zyka --help                    # verify install
 ```
 
 Set your API key:
@@ -24,14 +26,14 @@ Get an API key at https://zyka.ai/settings/api-keys
 
 ## CRITICAL: Always use CLI commands, never write code scripts
 
-When a user asks to generate media, **run the `npx zyka generate` command directly** — do NOT write JavaScript files. The CLI handles file uploads, waiting, and downloading.
+When a user asks to generate media, **run the `zyka generate` command directly** — do NOT write JavaScript files. The CLI handles file uploads, waiting, and downloading.
 
 ---
 
 ## Generate Videos
 
 ```bash
-npx zyka generate video -m MODEL -p "prompt" [options]
+zyka generate video -m MODEL -p "prompt" [options]
 ```
 
 ### Video Models
@@ -66,42 +68,42 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 
 **Text to video:**
 ```bash
-npx zyka generate video -m wan -p "A cinematic sunset over mountains" -d 5 -o ./sunset.mp4
+zyka generate video -m wan -p "A cinematic sunset over mountains" -d 5 -o ./sunset.mp4
 ```
 
 **Image to video (animate a photo):**
 ```bash
-npx zyka generate video -m kling -s kling-v2-master -p "gentle zoom in with wind" --image ./photo.jpg -d 5 -a 16:9 --mode pro -o ./animated.mp4
+zyka generate video -m kling -s kling-v2-master -p "gentle zoom in with wind" --image ./photo.jpg -d 5 -a 16:9 --mode pro -o ./animated.mp4
 ```
 
 **Talking head (lip sync):**
 ```bash
-npx zyka generate video -m infinite_talk -p "lip sync" --image ./face.jpg --audio ./speech.mp3 -o ./talking.mp4
+zyka generate video -m infinite_talk -p "lip sync" --image ./face.jpg --audio ./speech.mp3 -o ./talking.mp4
 ```
 
 **Aurora lip sync (video + audio):**
 ```bash
-npx zyka generate video -m aurora --video ./face.mp4 --audio ./speech.mp3 -o ./lipsync.mp4
+zyka generate video -m aurora --video ./face.mp4 --audio ./speech.mp3 -o ./lipsync.mp4
 ```
 
 **First/last frame interpolation:**
 ```bash
-npx zyka generate video -m veo -s veo-3.1-generate-001 -p "smooth transition" --first-frame ./start.jpg --last-frame ./end.jpg -d 8 -a 16:9 -o ./transition.mp4
+zyka generate video -m veo -s veo-3.1-generate-001 -p "smooth transition" --first-frame ./start.jpg --last-frame ./end.jpg -d 8 -a 16:9 -o ./transition.mp4
 ```
 
 **LTX video:**
 ```bash
-npx zyka generate video -m ltx -s ltx-2.3-text-to-video -p "A flowing river through autumn forest" -o ./ltx.mp4
+zyka generate video -m ltx -s ltx-2.3-text-to-video -p "A flowing river through autumn forest" -o ./ltx.mp4
 ```
 
 **Grok video:**
 ```bash
-npx zyka generate video -m grok -p "Medieval knight in mystical forest" -d 6 --resolution 720p -o ./knight.mp4
+zyka generate video -m grok -p "Medieval knight in mystical forest" -d 6 --resolution 720p -o ./knight.mp4
 ```
 
 **WAN animate replace (swap character in video):**
 ```bash
-npx zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp4 --image ./new-character.png -o ./swapped.mp4
+zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp4 --image ./new-character.png -o ./swapped.mp4
 ```
 
 ---
@@ -109,7 +111,7 @@ npx zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp
 ## Generate Images
 
 ```bash
-npx zyka generate image -m MODEL -p "prompt" [options]
+zyka generate image -m MODEL -p "prompt" [options]
 ```
 
 ### Image Models
@@ -140,37 +142,37 @@ npx zyka generate image -m MODEL -p "prompt" [options]
 
 **Generate from text:**
 ```bash
-npx zyka generate image -m gpt_image_1 -p "A neon cyberpunk cityscape" -o ./city.png
+zyka generate image -m gpt_image_1 -p "A neon cyberpunk cityscape" -o ./city.png
 ```
 
 **Edit an existing image:**
 ```bash
-npx zyka generate image -m nano_banana -s nano-banana-pro -p "make the hair straight" --image ./me.png -o ./result.png
+zyka generate image -m nano_banana -s nano-banana-pro -p "make the hair straight" --image ./me.png -o ./result.png
 ```
 
 **4K high-res image:**
 ```bash
-npx zyka generate image -m nano_banana -s nano-banana-2 -p "cinematic portrait" --resolution 4K --size 5504x3072 -o ./portrait.png
+zyka generate image -m nano_banana -s nano-banana-2 -p "cinematic portrait" --resolution 4K --size 5504x3072 -o ./portrait.png
 ```
 
 **Transparent background:**
 ```bash
-npx zyka generate image -m gpt_image_1 -p "product photo of sneakers" --background transparent -o ./sneakers.png
+zyka generate image -m gpt_image_1 -p "product photo of sneakers" --background transparent -o ./sneakers.png
 ```
 
 **Grok image:**
 ```bash
-npx zyka generate image -m grok_imagine -p "Abstract golden particles, data visualization style" -o ./abstract.png
+zyka generate image -m grok_imagine -p "Abstract golden particles, data visualization style" -o ./abstract.png
 ```
 
 **Qwen image:**
 ```bash
-npx zyka generate image -m qwen_image_2_pro -p "A serene mountain landscape at sunset" -o ./landscape.png
+zyka generate image -m qwen_image_2_pro -p "A serene mountain landscape at sunset" -o ./landscape.png
 ```
 
 **Zyka Helion (fast):**
 ```bash
-npx zyka generate image -m zyka_helion -p "cyberpunk cat in neon city" -o ./cat.png
+zyka generate image -m zyka_helion -p "cyberpunk cat in neon city" -o ./cat.png
 ```
 
 ---
@@ -178,7 +180,7 @@ npx zyka generate image -m zyka_helion -p "cyberpunk cat in neon city" -o ./cat.
 ## Generate Text-to-Speech
 
 ```bash
-npx zyka generate tts --script "text" [options]
+zyka generate tts --script "text" [options]
 ```
 
 ### TTS Providers
@@ -200,52 +202,52 @@ npx zyka generate tts --script "text" [options]
 
 **Generate speech:**
 ```bash
-npx zyka generate tts --provider elevenlabs --voice-id VOICE_ID --script "Welcome to Zyka" -o ./speech.mp3
+zyka generate tts --provider elevenlabs --voice-id VOICE_ID --script "Welcome to Zyka" -o ./speech.mp3
 ```
 
 **Clone a voice:**
 ```bash
-npx zyka generate tts --provider chatterbox --voice ./my-voice.mp3 --script "[happy] This sounds like me!" -o ./cloned.mp3
+zyka generate tts --provider chatterbox --voice ./my-voice.mp3 --script "[happy] This sounds like me!" -o ./cloned.mp3
 ```
 
 **Fish Audio:**
 ```bash
-npx zyka generate tts --provider fish-audio --voice ./sample.wav --script "Hello world" -o ./fish.mp3
+zyka generate tts --provider fish-audio --voice ./sample.wav --script "Hello world" -o ./fish.mp3
 ```
 
 **MiniMax preset voice:**
 ```bash
-npx zyka generate tts --provider minimax --script "Hello! Welcome to MiniMax TTS." -o ./minimax.mp3
+zyka generate tts --provider minimax --script "Hello! Welcome to MiniMax TTS." -o ./minimax.mp3
 ```
 
 **MiniMax with emotion and stereo:**
 ```bash
-npx zyka generate tts --provider minimax --script "Hello!" --emotion happy --channel 2 -o ./minimax.mp3
+zyka generate tts --provider minimax --script "Hello!" --emotion happy --channel 2 -o ./minimax.mp3
 ```
 
 **Sarvam (Indian-language Hindi):**
 ```bash
-npx zyka generate tts --provider sarvam --model "bulbul:v2" --target-language-code hi-IN --speaker manisha --script "नमस्ते, यह सर्वम का टेस्ट है।" -o ./sarvam.mp3
+zyka generate tts --provider sarvam --model "bulbul:v2" --target-language-code hi-IN --speaker manisha --script "नमस्ते, यह सर्वम का टेस्ट है।" -o ./sarvam.mp3
 ```
 
 **Gemini single-speaker with directed emotion:**
 ```bash
-npx zyka generate tts --provider gemini-tts --voice-name Kore --script "Say cheerfully: Have a wonderful day!" -o ./gemini.wav
+zyka generate tts --provider gemini-tts --voice-name Kore --script "Say cheerfully: Have a wonderful day!" -o ./gemini.wav
 ```
 
 **Gemini multi-speaker dialogue:**
 ```bash
-npx zyka generate tts --provider gemini-tts --speakers '[{"speaker":"Joe","voice_name":"Kore"},{"speaker":"Jane","voice_name":"Puck"}]' --script "Joe: Hi Jane!\nJane: Hey Joe, how are you?" -o ./dialogue.wav
+zyka generate tts --provider gemini-tts --speakers '[{"speaker":"Joe","voice_name":"Kore"},{"speaker":"Jane","voice_name":"Puck"}]' --script "Joe: Hi Jane!\nJane: Hey Joe, how are you?" -o ./dialogue.wav
 ```
 
 **VoxCPM2 (Voice Design — natural-language voice creation):**
 ```bash
-npx zyka generate tts --provider voxcpm2 --script "(A cheerful young woman) Welcome to Zyka!" --output-format flac -o ./voxcpm2.flac
+zyka generate tts --provider voxcpm2 --script "(A cheerful young woman) Welcome to Zyka!" --output-format flac -o ./voxcpm2.flac
 ```
 
 **ElevenLabs v3 with inline audio tags:**
 ```bash
-npx zyka generate tts --provider elevenlabs --voice-id UgBBYS2sOqTuMpoF3BR0 --model eleven_v3 --script "[excited] We did it! [laughs] This is incredible." -o ./v3.mp3
+zyka generate tts --provider elevenlabs --voice-id UgBBYS2sOqTuMpoF3BR0 --model eleven_v3 --script "[excited] We did it! [laughs] This is incredible." -o ./v3.mp3
 ```
 
 ---
@@ -295,40 +297,40 @@ const client = new ZykaClient();
 
 ### CLI App Commands
 ```bash
-npx zyka generate upscale --image ./photo.jpg --resolution 4k -o ./upscaled.jpg
-npx zyka generate face-swap --type image --url ./target.jpg --face ./face.jpg -o ./result.jpg
-npx zyka generate skin-enhancer --image ./photo.jpg --type perfect_skin -o ./enhanced.jpg
-npx zyka generate virtual-try-on --human ./me.jpg --cloth ./dress.jpg -o ./tryon.jpg
-npx zyka generate outfit-swap --user-image ./me.jpg --character-image ./celeb.jpg -o ./outfit.jpg
-npx zyka generate behind-the-scene --image ./photo.jpg --type image -o ./scene.jpg
-npx zyka generate nine-shorts --image ./photo.jpg -o ./angles.jpg
-npx zyka generate zooms --image ./photo.jpg -o ./zooms.jpg
-npx zyka generate story-generator --image ./photo.jpg -o ./story.jpg
-npx zyka generate holi-special --image ./photo.jpg -o ./holi.jpg
-npx zyka generate simple-app --image ./photo.jpg --app-id my-app -o ./result.jpg
-npx zyka generate caption --url ./video.mp4 --language en --output-mode video -o ./captioned.mp4
-npx zyka generate caption --audio-url ./audio.mp3 --language en --output-mode srt -o ./subs.srt
-npx zyka generate caption --url ./video.mp4 --output-mode both -o ./captioned.mp4
-npx zyka generate video-to-script --url ./video.mp4 --script-style screenplay -o ./script.txt
-npx zyka generate video-cleaner --url ./video.mp4 -o ./cleaned.mp4
-npx zyka generate video-upscaler --url ./video.mp4 --resolution 4k -o ./upscaled.mp4
-npx zyka generate video-dubbing --url ./video.mp4 --model heygen --language "Hindi (India)" --mode precision -o ./dubbed.mp4
-npx zyka generate video-dubbing --url ./video.mp4 --model elevenlabs --language hi --source-lang en --num-speakers 2 --highest-resolution -o ./dubbed.mp4
-npx zyka generate video-dubbing --url ./video.mp4 --model sarvam --language "Hindi,Tamil" --genre education -o ./dubbed.mp4
-npx zyka generate short-video --url ./long.mp4 --duration auto -o ./clips/
-npx zyka generate broll --url ./video.mp4 -o ./with-broll.mp4
-npx zyka generate youtube-download --url "https://youtube.com/watch?v=..." --quality 720p -o ./video.mp4
-npx zyka generate voice-changer --audio ./input.mp3 --target-voice-id UgBBYS2sOqTuMpoF3BR0 -o ./output.mp3
-npx zyka generate voice-changer --audio ./input.mp3 --voice-id my-stored-voice-uuid --model eleven_multilingual_sts_v2 -o ./output.mp3
-npx zyka generate voice-isolation --audio ./noisy.mp3 -o ./clean.mp3
-npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
+zyka generate upscale --image ./photo.jpg --resolution 4k -o ./upscaled.jpg
+zyka generate face-swap --type image --url ./target.jpg --face ./face.jpg -o ./result.jpg
+zyka generate skin-enhancer --image ./photo.jpg --type perfect_skin -o ./enhanced.jpg
+zyka generate virtual-try-on --human ./me.jpg --cloth ./dress.jpg -o ./tryon.jpg
+zyka generate outfit-swap --user-image ./me.jpg --character-image ./celeb.jpg -o ./outfit.jpg
+zyka generate behind-the-scene --image ./photo.jpg --type image -o ./scene.jpg
+zyka generate nine-shorts --image ./photo.jpg -o ./angles.jpg
+zyka generate zooms --image ./photo.jpg -o ./zooms.jpg
+zyka generate story-generator --image ./photo.jpg -o ./story.jpg
+zyka generate holi-special --image ./photo.jpg -o ./holi.jpg
+zyka generate simple-app --image ./photo.jpg --app-id my-app -o ./result.jpg
+zyka generate caption --url ./video.mp4 --language en --output-mode video -o ./captioned.mp4
+zyka generate caption --audio-url ./audio.mp3 --language en --output-mode srt -o ./subs.srt
+zyka generate caption --url ./video.mp4 --output-mode both -o ./captioned.mp4
+zyka generate video-to-script --url ./video.mp4 --script-style screenplay -o ./script.txt
+zyka generate video-cleaner --url ./video.mp4 -o ./cleaned.mp4
+zyka generate video-upscaler --url ./video.mp4 --resolution 4k -o ./upscaled.mp4
+zyka generate video-dubbing --url ./video.mp4 --model heygen --language "Hindi (India)" --mode precision -o ./dubbed.mp4
+zyka generate video-dubbing --url ./video.mp4 --model elevenlabs --language hi --source-lang en --num-speakers 2 --highest-resolution -o ./dubbed.mp4
+zyka generate video-dubbing --url ./video.mp4 --model sarvam --language "Hindi,Tamil" --genre education -o ./dubbed.mp4
+zyka generate short-video --url ./long.mp4 --duration auto -o ./clips/
+zyka generate broll --url ./video.mp4 -o ./with-broll.mp4
+zyka generate youtube-download --url "https://youtube.com/watch?v=..." --quality 720p -o ./video.mp4
+zyka generate voice-changer --audio ./input.mp3 --target-voice-id UgBBYS2sOqTuMpoF3BR0 -o ./output.mp3
+zyka generate voice-changer --audio ./input.mp3 --voice-id my-stored-voice-uuid --model eleven_multilingual_sts_v2 -o ./output.mp3
+zyka generate voice-isolation --audio ./noisy.mp3 -o ./clean.mp3
+zyka generate image-to-svg --image ./photo.png -o ./result.svg
 ```
 
 ---
 
 ## Guidelines
 
-- **ALWAYS use `npx zyka generate` CLI commands** — never write JavaScript files
+- **ALWAYS use `zyka generate` CLI commands** — never write JavaScript files
 - Set `ZYKA_API_KEY` env var before running commands
 - Use `-o ./filename` to save results to disk (auto-downloads)
 - Use `--image ./path` to pass local image files (auto-uploads)
