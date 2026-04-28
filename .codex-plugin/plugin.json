@@ -22,7 +22,7 @@
     "elevenlabs",
     "dall-e"
   ],
-  "skills": "./skills/SKILL.md",
+  "skills": "./skills/",
   "interface": {
     "displayName": "Zyka AI",
     "shortDescription": "AI video, image, and voice generation — 40+ models in one CLI",
