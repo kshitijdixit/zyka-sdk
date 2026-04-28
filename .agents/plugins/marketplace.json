@@ -1,0 +1,21 @@
+{
+  "name": "zyka-marketplace",
+  "interface": {
+    "displayName": "Zyka AI Plugins",
+    "shortDescription": "AI media generation plugins by Zyka"
+  },
+  "plugins": [
+    {
+      "name": "zyka-sdk",
+      "source": {
+        "source": "local",
+        "path": "../../"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

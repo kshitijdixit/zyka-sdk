@@ -1,0 +1,44 @@
+{
+  "name": "zyka-sdk",
+  "version": "0.4.11",
+  "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI — 40+ models including Sora, Veo, Kling, WAN, DALL-E, GPT Image, Flux, ElevenLabs, and more.",
+  "author": {
+    "name": "Zyka",
+    "email": "support@zyka.ai",
+    "url": "https://zyka.ai"
+  },
+  "homepage": "https://zyka.ai",
+  "repository": "https://github.com/kshitijdixit/zyka-sdk",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "video-generation",
+    "image-generation",
+    "tts",
+    "media-generation",
+    "sora",
+    "veo",
+    "kling",
+    "elevenlabs",
+    "dall-e"
+  ],
+  "skills": "./skills/SKILL.md",
+  "interface": {
+    "displayName": "Zyka AI",
+    "shortDescription": "AI video, image, and voice generation — 40+ models in one CLI",
+    "longDescription": "Generate AI videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL-E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, and AI apps (upscale, face swap, captions, dubbing) — all from one CLI. Requires a ZYKA_API_KEY from https://zyka.ai.",
+    "developerName": "Zyka",
+    "category": "Productivity",
+    "websiteURL": "https://zyka.ai",
+    "privacyPolicyURL": "https://zyka.ai/privacy",
+    "termsOfServiceURL": "https://zyka.ai/terms-and-conditions",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Generate a video of a sunset over mountains using WAN",
+      "Create an image of a neon cyberpunk city with Nano Banana",
+      "Convert this script to speech using ElevenLabs",
+      "Dub this video into Hindi using HeyGen"
+    ]
+  }
+}
