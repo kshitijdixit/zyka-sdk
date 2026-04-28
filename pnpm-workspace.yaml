@@ -2,3 +2,5 @@ packages:
   - "packages/*"
   - "templates/*"
   - "examples/*"
+
+linkWorkspacePackages: true
