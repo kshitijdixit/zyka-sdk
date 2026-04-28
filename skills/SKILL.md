@@ -1,7 +1,16 @@
-<!-- zyka-skill-version: 0.4.3 -->
+<!-- zyka-skill-version: 0.4.7 -->
 ---
 name: zyka-ai
 description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
+homepage: https://zyka.ai
+repository: https://github.com/kshitijdixit/zyka-sdk
+license: MIT
+metadata:
+  openclaw:
+    requires:
+      env: [ZYKA_API_KEY]
+      bins: [npx]
+    primaryEnv: ZYKA_API_KEY
 ---
 
 # Zyka AI Media Generation
@@ -10,17 +19,18 @@ Generate AI videos, images, voice, and use AI-powered apps directly from the ter
 
 ## Setup
 
+The `zyka` CLI is published on npm: https://www.npmjs.com/package/zyka
+Source: https://github.com/kshitijdixit/zyka-sdk
+
 ```bash
-npx zyka --help          # no install needed
-npm install -g zyka      # or install globally
+npx zyka@0.4.6 --help          # pinned, no install needed
+npm install -g zyka@0.4.6      # or install globally (pinned version)
 ```
 
-Set your API key:
+Set your API key (required — get one at https://zyka.ai/settings/api-keys):
 ```bash
 export ZYKA_API_KEY=zk_live_...
 ```
-
-Get an API key at https://zyka.ai/settings/api-keys
 
 ## CRITICAL: Always use CLI commands, never write code scripts
 
