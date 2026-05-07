@@ -1,6 +1,6 @@
 ---
 name: zyka-ai
-version: 0.4.11
+version: 0.4.12
 description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
 homepage: https://zyka.ai
 repository: https://github.com/kshitijdixit/zyka-sdk
@@ -20,7 +20,7 @@ metadata:
         label: "Install Zyka CLI (npm)"
 ---
 
-<!-- zyka-skill-version: 0.4.11 -->
+<!-- zyka-skill-version: 0.4.12 -->
 
 # Zyka AI Media Generation
 
