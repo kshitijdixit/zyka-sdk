@@ -17,6 +17,27 @@ export interface ZykaConfig {
   timeoutMs?: number;
   /** Polling interval in ms. Default: 3000 */
   pollIntervalMs?: number;
+  /**
+   * Custom handler for SDK validation warnings (unsupported sub_model, out-of-range
+   * duration, file too large, etc.). When provided, warnings are routed here instead
+   * of `console.warn`. Use this to suppress warnings, send them to a logger, or
+   * surface them in your own UI.
+   *
+   * Warnings are advisory only — the SDK never throws on them and always forwards
+   * the request to the server. The server may still reject the request server-side.
+   *
+   * @example
+   * const client = new ZykaClient({
+   *   apiKey: '...',
+   *   onWarning: (msg) => myLogger.warn(msg),
+   * });
+   */
+  onWarning?: (message: string) => void;
+  /**
+   * Disable SDK validation warnings entirely. When true, no warnings are emitted
+   * regardless of `onWarning`. Default: false.
+   */
+  disableWarnings?: boolean;
 }
 
 // ═══════════════════════════════════════════════

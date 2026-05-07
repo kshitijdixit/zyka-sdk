@@ -396,13 +396,15 @@ console.log(result.scenes["hero-image"].outputUrl);
 
 ### Client Configuration
 
-| Option           | Type     | Required | Description                                | Default                      |
-| ---------------- | -------- | -------- | ------------------------------------------ | ---------------------------- |
-| `apiKey`         | `string` | No       | Preferred Zyka API key                     | `process.env.ZYKA_API_KEY`   |
-| `token`          | `string` | No       | Legacy bearer token                        | `process.env.ZYKA_API_TOKEN` |
-| `apiUrl`         | `string` | No       | Base URL for Zyka API                      | `https://zyka.ai/api-v2`     |
-| `timeoutMs`      | `number` | No       | Max time to wait for generation completion | `300000`                     |
-| `pollIntervalMs` | `number` | No       | Polling interval for async jobs            | `3000`                       |
+| Option             | Type                       | Required | Description                                                            | Default                      |
+| ------------------ | -------------------------- | -------- | ---------------------------------------------------------------------- | ---------------------------- |
+| `apiKey`           | `string`                   | No       | Preferred Zyka API key                                                 | `process.env.ZYKA_API_KEY`   |
+| `token`            | `string`                   | No       | Legacy bearer token                                                    | `process.env.ZYKA_API_TOKEN` |
+| `apiUrl`           | `string`                   | No       | Base URL for Zyka API                                                  | `https://zyka.ai/api-v2`     |
+| `timeoutMs`        | `number`                   | No       | Max time to wait for generation completion                             | `300000`                     |
+| `pollIntervalMs`   | `number`                   | No       | Polling interval for async jobs                                        | `3000`                       |
+| `onWarning`        | `(message: string) => void`| No       | Custom handler for SDK validation warnings (routes away from `console.warn`) | `console.warn`         |
+| `disableWarnings`  | `boolean`                  | No       | Suppress SDK validation warnings entirely                              | `false`                      |
 
 ### Common Generation Options
 
@@ -424,6 +426,68 @@ console.log(result.scenes["hero-image"].outputUrl);
 | `output`            | `string`  | Download completed output to a local path          | `undefined` |
 | `timeoutMs`         | `number`  | Override wait timeout per request                  | `300000`    |
 | `pollIntervalMs`    | `number`  | Override polling interval per request              | `3000`      |
+
+### Validation & Limits (Soft Warnings)
+
+The SDK ships per-model configs (mirroring the Zyka frontend) that describe each video model's supported durations, resolutions, aspect ratios, prompt limits, file-size caps, and audio-duration windows. `createVideo()` validates your params against these configs **before** uploading any local files and surfaces issues as **soft warnings** — the request still goes to the server. The server is the source of truth.
+
+What it catches:
+
+- Unknown `sub_model` (with the list of known sub_models for that provider)
+- `duration` / `seconds` not in the supported list
+- `resolution` / `size` / `aspect_ratio` / `mode` / `video_quality` / `input_type` / `person_count` / `shot_type` not supported
+- `prompt` / `negative_prompt` longer than the model's max
+- `cfg_scale` outside the supported range, or set on a model that ignores it
+- `turbo_mode` set on a model that doesn't support it
+- Local image / audio / video files larger than the model's size cap
+- Local files with MIME types not in the supported list (by extension)
+- Audio duration limits as heads-up notes (e.g. OmniHuman v1.5: 60s @ 720p / 30s @ 1080p; WAN: 2–30s window)
+
+Default behavior (warnings go to `console.warn`):
+
+```js
+const client = new ZykaClient({ apiKey: 'zk_live_...' });
+await client.createVideo({
+  model: 'wan',
+  sub_model: 'wan-2-7',
+  prompt: 'a sunset',
+  duration: 99,  // not supported
+});
+// console.warn: [zyka-sdk] duration=99s is not in the supported list for 'wan-2-7'. Supported: '5', '10', '15'.
+```
+
+Custom warning handler:
+
+```js
+const client = new ZykaClient({
+  apiKey: 'zk_live_...',
+  onWarning: (msg) => myLogger.warn(msg),
+});
+```
+
+Disable warnings entirely:
+
+```js
+const client = new ZykaClient({ apiKey: 'zk_live_...', disableWarnings: true });
+```
+
+Introspect a model's limits:
+
+```js
+const cfg = client.getModelConfig('bytedance', 'OmniHuman v1.5');
+console.log(cfg?.audio_duration_limit_1080p);  // 30
+console.log(cfg?.resolutions);                  // ['720p', '1080p']
+```
+
+Or import the config maps and validator directly:
+
+```js
+import { BYTEDANCE_VIDEO_CONFIG, getVideoModelConfig, validateVideoParams } from 'zyka-sdk';
+
+const { warnings } = validateVideoParams({ model: 'wan', sub_model: 'wan-2-7', duration: 99 });
+```
+
+> Validation currently covers **video models** only (matches the available frontend configs). Image and TTS validation will be added when those configs land.
 
 ## API Methods
 

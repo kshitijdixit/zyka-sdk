@@ -108,6 +108,8 @@ export async function render<TInputs extends Record<string, unknown>>(
     token: config?.token || process.env.ZYKA_API_TOKEN || '',
     timeoutMs: config?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     pollIntervalMs: config?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
+    onWarning: config?.onWarning ?? ((m: string) => console.warn(m)),
+    disableWarnings: config?.disableWarnings ?? false,
   };
 
   const client = new ZykaClient(resolvedConfig);

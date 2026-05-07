@@ -38,6 +38,9 @@ import type {
   WaitOptions,
 } from './types';
 import { resolveToUrl, downloadFile } from './file-utils';
+import { validateVideoParams } from './validate';
+import { getVideoModelConfig } from './configs/video';
+import type { ModelConfig } from './configs/types';
 
 // ─────────────────────────────────────────────
 // Auth resolution
@@ -211,10 +214,38 @@ function normalizeResult(raw: Record<string, unknown>, type: GenerationType): Ge
 export class ZykaClient {
   private token: string;
   private baseUrl: string;
+  private onWarning?: (message: string) => void;
+  private warningsDisabled: boolean;
 
   constructor(config?: ZykaConfig) {
     this.token = resolveToken(config);
     this.baseUrl = resolveBaseUrl(config);
+    this.onWarning = config?.onWarning;
+    this.warningsDisabled = config?.disableWarnings === true;
+  }
+
+  // ── Warnings ────────────────────────────────
+
+  /**
+   * Emit SDK warnings. Routes to `onWarning` callback if provided, otherwise
+   * `console.warn`. Silent when `disableWarnings: true`.
+   */
+  private emitWarnings(messages: string[]): void {
+    if (this.warningsDisabled || messages.length === 0) return;
+    const handler = this.onWarning ?? ((m: string) => console.warn(m));
+    for (const m of messages) handler(m);
+  }
+
+  /**
+   * Look up a video model's config (limits, supported durations/resolutions, etc.).
+   * Returns `undefined` if the model is unknown to the SDK.
+   *
+   * @example
+   * const cfg = client.getModelConfig('bytedance', 'OmniHuman v1.5');
+   * console.log(cfg?.audio_duration_limit_1080p); // 30
+   */
+  getModelConfig(model: string, sub_model?: string): ModelConfig | undefined {
+    return getVideoModelConfig(model, sub_model);
   }
 
   // ── Internal helpers ────────────────────────
@@ -291,6 +322,12 @@ export class ZykaClient {
    * );
    */
   async createVideo(params: VideoGenerationParams, options?: WaitOptions): Promise<GenerationResult> {
+    // Validate against known model configs and surface soft warnings.
+    // Runs before file uploads so the user hears about a too-large file before
+    // we burn bandwidth uploading it.
+    const { warnings } = validateVideoParams(params);
+    this.emitWarnings(warnings);
+
     // Auto-upload local files
     const resolved = { ...params } as Record<string, unknown>;
     resolved.image_url = await this.resolveFile(params.image_url);

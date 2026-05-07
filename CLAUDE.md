@@ -334,6 +334,73 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 
 ---
 
+## Validation & Limits (Soft Warnings)
+
+The SDK ships per-model configs (mirroring the Zyka frontend) describing each model's supported durations, resolutions, aspect ratios, prompt limits, file-size caps, audio-duration windows, etc. `createVideo()` validates your params against these configs **before** uploading files, and surfaces any issues as **soft warnings** — it never throws. The request still goes to the server, which is the source of truth.
+
+### What it catches
+
+- Unknown `sub_model` (with the list of known sub_models for that provider)
+- `duration` / `seconds` not in the supported list
+- `resolution` / `size` / `aspect_ratio` not supported
+- `mode`, `video_quality`, `input_type`, `person_count`, `shot_type` not supported
+- `prompt` / `negative_prompt` longer than the model's max
+- `cfg_scale` outside the supported range, or set on a model that ignores it
+- `turbo_mode` set on a model that doesn't support it
+- Local **image / audio / video files** larger than the model's size cap
+- Local files with MIME types not in the supported list (by extension)
+- Audio duration limits as heads-up notes (e.g. OmniHuman v1.5: 60s @ 720p / 30s @ 1080p; WAN: 2–30s window)
+
+### Default behavior
+
+```js
+const client = new ZykaClient({ apiKey: 'zk_live_...' });
+await client.createVideo({
+  model: 'bytedance',
+  sub_model: 'OmniHuman v1.5',
+  image_url: './face.jpg',
+  audio_url: './long-speech.mp3',
+});
+// console.warn: [zyka-sdk] 'OmniHuman v1.5' has audio duration limits: 60s @ 720p, 30s @ 1080p. ...
+```
+
+### Custom warning handler
+
+```js
+const client = new ZykaClient({
+  apiKey: 'zk_live_...',
+  onWarning: (msg) => myLogger.warn(msg),  // route to your logger
+});
+```
+
+### Disable warnings entirely
+
+```js
+const client = new ZykaClient({ apiKey: 'zk_live_...', disableWarnings: true });
+```
+
+### Introspect a model's limits
+
+```js
+const cfg = client.getModelConfig('bytedance', 'OmniHuman v1.5');
+console.log(cfg?.audio_duration_limit_1080p);  // 30
+console.log(cfg?.resolutions);                  // ['720p', '1080p']
+```
+
+You can also import the config maps directly:
+
+```js
+import { BYTEDANCE_VIDEO_CONFIG, getVideoModelConfig, validateVideoParams } from 'zyka-sdk';
+
+const cfg = getVideoModelConfig('wan', 'wan-2-7');
+const { warnings } = validateVideoParams({ model: 'wan', sub_model: 'wan-2-7', duration: 99 });
+// warnings: ["[zyka-sdk] duration=99s is not in the supported list for 'wan-2-7'. Supported: '5', '10', '15'."]
+```
+
+> Validation currently covers **video models** only (matches the frontend configs). Image and TTS validation will be added when those configs land.
+
+---
+
 ## Auth
 
 ### API Key (Recommended)

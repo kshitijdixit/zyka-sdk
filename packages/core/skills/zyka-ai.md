@@ -1,4 +1,4 @@
-<!-- zyka-skill-version: 0.4.7 -->
+<!-- zyka-skill-version: 0.4.8 -->
 ---
 name: zyka-ai
 description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
@@ -341,6 +341,17 @@ npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
 - When generating 4K images, use `-m nano_banana -s nano-banana-2 --resolution 4K`
 - For fast image generation, use `-m zyka_helion` or `-m flux_1_schnell`
 - For transparent backgrounds, use `-m gpt_image_1 --background transparent`
+
+### Model limit warnings
+
+The SDK validates video params against per-model configs (supported durations, resolutions, aspect ratios, prompt limits, file-size caps, audio-duration windows) and prints `[zyka-sdk]`-prefixed warnings when something looks off — e.g. unknown sub_model, duration not in the supported list, or audio file too large. The request still goes to the server (warnings are advisory). Examples of caught issues:
+
+- `OmniHuman v1.5` audio duration limits: 60s @ 720p, 30s @ 1080p
+- `WAN` audio must be 2–30s
+- `wan-2-7` only accepts duration `5`, `10`, or `15`
+- File size caps (per model, e.g. Kling: 10 MB image, OmniHuman v1.5: 50 MB audio for Seedance V1.5 Pro)
+
+For programmatic introspection from SDK code: `client.getModelConfig('bytedance', 'OmniHuman v1.5')`.
 
 ## CLI Options Reference
 

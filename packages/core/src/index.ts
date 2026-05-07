@@ -17,6 +17,23 @@ export {
   renderBehindTheScene,
   refinePrompt,
 } from './helpers';
+export { validateVideoParams } from './validate';
+export type { ValidationResult } from './validate';
+export {
+  VIDEO_CONFIGS_BY_MODEL,
+  getVideoModelConfig,
+  listVideoSubModels,
+  SORA_VIDEO_CONFIG,
+  VEO_VIDEO_CONFIG,
+  KLING_VIDEO_CONFIG,
+  BYTEDANCE_VIDEO_CONFIG,
+  WAN_VIDEO_CONFIG,
+  GROK_VIDEO_CONFIG,
+  AURORA_VIDEO_CONFIG,
+  INFINITETALK_VIDEO_CONFIG,
+  LTX_VIDEO_CONFIG,
+} from './configs';
+export type { ModelConfig } from './configs';
 
 export type {
   ZykaConfig,
