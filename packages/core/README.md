@@ -537,6 +537,9 @@ const { warnings } = validateVideoParams({ model: 'wan', sub_model: 'wan-2-7', d
 | `createVoiceChanger()`      | ElevenLabs Speech-to-Speech voice transform | `VoiceChangerParams`, `WaitOptions?` | `client.createVoiceChanger({ source_audio_url, target_voice_id: '...' })` |
 | `createVoiceIsolation()`    | Isolate vocals (remove background noise/music) | `VoiceIsolationParams`, `WaitOptions?` | `client.createVoiceIsolation({ source_audio_url: './noisy.mp3' })`      |
 | `createImageToSvg()`        | Convert an image to an SVG vector    | `ImageToSvgParams`                        | `client.createImageToSvg({ image: './photo.png' })`               |
+| `createTranscription()`     | Transcribe audio to text (Deepgram)  | `TranscriptionParams`                     | `client.createTranscription({ audio_url: './meeting.mp3' })`      |
+| `listTranscriptions()`      | List prior transcription logs (paginated) | `TranscriptionListParams?`           | `client.listTranscriptions({ page: 1, search: 'invoice' })`       |
+| `deleteTranscription()`     | Delete a transcription log           | `id: string`                              | `client.deleteTranscription('019e2112-...')`                      |
 
 ### Composition Helpers
 
@@ -690,6 +693,7 @@ npx zyka render ./dist/promo.js --inputs '{"prompt":"A cinematic launch video"}'
 npx zyka generate image -m gpt_image_1 -p "A luxury watch ad" -o ./watch.png
 npx zyka generate video -m wan -p "A drone shot over mountains" -d 5 -o ./mountains.mp4
 npx zyka generate tts --provider elevenlabs --voice-id VOICE_ID --script "Welcome to Zyka" -o ./voice.mp3
+npx zyka generate transcription --audio ./meeting.mp3 --language en-US -o ./transcript.txt
 ```
 
 ## Rate Limits

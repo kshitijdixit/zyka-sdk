@@ -291,6 +291,9 @@ const client = new ZykaClient();
 | Voice Changer | `createVoiceChanger()` | `{ source_audio_url, target_voice_id? (ElevenLabs ID) OR voice_id? (stored MyVoice UUID), model?: 'eleven_multilingual_sts_v2'/'eleven_english_sts_v2', remove_background_noise?, voice_settings? }` |
 | Voice Isolation | `createVoiceIsolation()` | `{ source_audio_url }` — strips background noise/music, returns clean vocals |
 | Image to SVG | `createImageToSvg()` | `{ image_url }` |
+| Transcription | `createTranscription()` | `{ audio_url, language? }` — returns `{ transcript, confidence, duration, detected_language }` directly (sync, Deepgram) |
+| List Transcriptions | `listTranscriptions()` | `{ page?, limit?, search?, from_date?, to_date? }` |
+| Delete Transcription | `deleteTranscription()` | `id` |
 
 ### CLI App Commands
 ```bash
@@ -321,6 +324,7 @@ npx zyka generate voice-changer --audio ./input.mp3 --target-voice-id UgBBYS2sOq
 npx zyka generate voice-changer --audio ./input.mp3 --voice-id my-stored-voice-uuid --model eleven_multilingual_sts_v2 -o ./output.mp3
 npx zyka generate voice-isolation --audio ./noisy.mp3 -o ./clean.mp3
 npx zyka generate image-to-svg --image ./photo.png -o ./result.svg
+npx zyka generate transcription --audio ./meeting.mp3 --language en-US -o ./transcript.txt
 ```
 
 ---

@@ -230,6 +230,7 @@ const client = new ZykaClient();
 | Short Video Creator | `createShortVideoCreator()` | `{ url, clip_duration_sec: 'auto'/5/15/30/45 }` |
 | B-roll | `createBroll()` | `{ url, broll_duration_sec?: 'auto'/2-10 }` |
 | YouTube Downloader | `createYouTubeDownloader()` | `{ url, quality?: '720p', format?: 'mp4' }` |
+| Transcription | `createTranscription()` | `{ audio_url, language? }` — returns `{ transcript, confidence, duration, detected_language }` directly (sync, Deepgram) |
 
 ---
 

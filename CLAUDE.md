@@ -62,6 +62,7 @@ const result = await client.createImage(
 npx zyka generate image -m nano_banana -p "neon city" -o ./result.png
 npx zyka generate video -m wan -p "sunset over mountains" -o ./video.mp4
 npx zyka generate tts --script "Hello world" --voice-id abc123 -o ./speech.mp3
+npx zyka generate transcription --audio ./meeting.mp3 -o ./transcript.txt
 ```
 
 ### asset() Helper (Remotion-like public/ folder)
@@ -292,6 +293,9 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createVoiceChanger({ source_audio_url, target_voice_id?, voice_id?, model?, remove_background_noise?, voice_settings? })` | ElevenLabs Speech-to-Speech voice transform |
 | `client.createVoiceIsolation({ source_audio_url })` | Strip background noise/music, return clean vocals (ElevenLabs Audio Isolation) |
 | `client.createImageToSvg({ image_url })` | Convert image to SVG vector |
+| `client.createTranscription({ audio_url, language? })` | Transcribe audio to text (Deepgram). Returns `{ transcript, confidence, duration, detected_language, ... }` |
+| `client.listTranscriptions({ page?, limit?, search?, from_date?, to_date? })` | List previous transcriptions |
+| `client.deleteTranscription(id)` | Delete a transcription log |
 | `client.createHoliSpecial({ image })` | Holi color-splash effect on image |
 | `client.createSimpleApp({ image, app_id?, prompt? })` | Run a generic app by ID |
 
@@ -326,6 +330,9 @@ const langs = await client.getVideoDubbingLanguages('elevenlabs');
 | `client.createVoiceChanger(params, opts?)` | ✅ default | Change/clone voice in audio (ElevenLabs S2S) |
 | `client.createVoiceIsolation(params, opts?)` | ✅ default | Isolate vocals (remove background noise/music) |
 | `client.createImageToSvg(params)` | ✅ sync | Convert image to SVG vector |
+| `client.createTranscription(params)` | ✅ sync | Audio-to-text transcription (returns transcript directly) |
+| `client.listTranscriptions(params?)` | — | List prior transcription logs (paginated) |
+| `client.deleteTranscription(id)` | — | Delete a transcription log |
 | `client.createHoliSpecial(params)` | ✅ sync | Holi color-splash effect |
 | `client.createSimpleApp(params)` | ✅ sync | Run a generic app by ID |
 | `client.pollUntilComplete(id, type)` | — | Manual polling |

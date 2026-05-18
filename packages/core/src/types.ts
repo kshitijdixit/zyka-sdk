@@ -960,6 +960,83 @@ export interface ImageToSvgParams {
   [key: string]: unknown;
 }
 
+export interface TranscriptionParams {
+  /** URL or local path of the audio to transcribe */
+  audio_url: string;
+  /** Optional BCP-47 language hint (e.g. `'en-US'`, `'hi-IN'`). Omit for auto-detection. */
+  language?: string;
+  [key: string]: unknown;
+}
+
+export interface TranscriptionResult {
+  /** Transcription log ID */
+  id: string;
+  /** Plain-text transcript */
+  transcript: string;
+  /** Provider confidence (0-1) */
+  confidence?: number;
+  /** Audio duration in seconds */
+  duration?: number;
+  /** Detected language code (e.g. `'en'`) */
+  detected_language?: string;
+  /** Original audio URL */
+  audio_url: string;
+  /** Job status from the API (`'Completed'`, etc.) */
+  status: string;
+  /** Credit usage metadata */
+  credit_info?: {
+    status: 'deducted' | 'refunded' | string;
+    credits_used?: number;
+    credits_refunded?: number;
+    balance_before?: number;
+    balance_after?: number;
+    model_id?: string;
+  };
+  /** Raw response payload for forward-compat fields */
+  raw?: Record<string, unknown>;
+}
+
+export interface TranscriptionListParams {
+  /** Page number (default 1) */
+  page?: number;
+  /** Page size (default 10, max 100) */
+  limit?: number;
+  /** Free-text search within transcripts */
+  search?: string;
+  /** Epoch ms filter (inclusive lower bound) */
+  from_date?: number;
+  /** Epoch ms filter (inclusive upper bound) */
+  to_date?: number;
+}
+
+export interface TranscriptionLogEntry {
+  transcription_log_id: string;
+  user_id: string;
+  audio_url: string;
+  language?: string;
+  transcript: string;
+  confidence?: number;
+  duration?: number;
+  detected_language?: string;
+  status: string;
+  is_deleted?: boolean;
+  created_at: number;
+  updated_at: number;
+  [key: string]: unknown;
+}
+
+export interface TranscriptionListResult {
+  data: TranscriptionLogEntry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 // ─────────────────────────────────────────────
 // Wait options (for built-in polling)
 // ─────────────────────────────────────────────
@@ -983,7 +1060,7 @@ export interface WaitOptions {
 // Generation Results
 // ─────────────────────────────────────────────
 
-export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'voice-isolation' | 'image-to-svg';
+export type GenerationType = 'video' | 'image' | 'tts' | 'voice' | 'upscale' | 'face-swap' | 'virtual-try-on' | 'outfit-swap' | 'skin-enhancer' | 'behind-the-scene' | 'angles' | 'nine-shorts' | 'zooms' | 'story-generator' | 'caption-generator' | 'video-to-script' | 'video-cleaner' | 'video-upscaler' | 'video-dubbing' | 'short-video-creator' | 'broll' | 'youtube-downloader' | 'holi-special' | 'simple-app' | 'voice-changer' | 'voice-isolation' | 'image-to-svg' | 'transcription';
 
 export type GenerationStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

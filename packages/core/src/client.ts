@@ -32,6 +32,10 @@ import type {
   VoiceChangerParams,
   VoiceIsolationParams,
   ImageToSvgParams,
+  TranscriptionParams,
+  TranscriptionResult,
+  TranscriptionListParams,
+  TranscriptionListResult,
   PromptRefinementParams,
   GenerationResult,
   GenerationType,
@@ -397,6 +401,25 @@ export class ZykaClient {
     // Auto-upload local files
     const resolved = { ...params } as Record<string, unknown>;
     resolved.image = await this.resolveFile(params.image);
+
+    // Auto-upload each entry in image_list (if provided as local paths)
+    if (Array.isArray(params.image_list) && params.image_list.length > 0) {
+      resolved.image_list = await Promise.all(
+        params.image_list.map((entry) => this.resolveFile(entry))
+      );
+    }
+
+    // gpt_image_2 expects an `image_list` array for edit mode (up to 16 refs),
+    // not a single `image` field. Promote `image` → `image_list: [image]` when
+    // the caller passed a single image and didn't already supply `image_list`.
+    if (
+      resolved.model === 'gpt_image_2' &&
+      typeof resolved.image === 'string' &&
+      !Array.isArray(resolved.image_list)
+    ) {
+      resolved.image_list = [resolved.image];
+      delete resolved.image;
+    }
 
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
@@ -799,6 +822,72 @@ export class ZykaClient {
       body: resolved, token: this.token, baseUrl: this.baseUrl,
     });
     return normalizeResult(res.data || {}, 'simple-app');
+  }
+
+  /**
+   * Transcribe an audio file to text (Deepgram-backed). Synchronous — returns the
+   * transcript directly. Local file paths for `audio_url` are auto-uploaded.
+   *
+   * @example
+   * const t = await client.createTranscription({ audio_url: './meeting.mp3' });
+   * console.log(t.transcript);
+   *
+   * @example
+   * // With language hint
+   * await client.createTranscription({ audio_url: './call.wav', language: 'en-US' });
+   */
+  async createTranscription(params: TranscriptionParams): Promise<TranscriptionResult> {
+    const resolved = { ...params } as Record<string, unknown>;
+    resolved.audio_url = await resolveToUrl(params.audio_url, this.baseUrl, this.token);
+    const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
+      method: 'POST', path: '/api/apps/transcription/create',
+      body: resolved, token: this.token, baseUrl: this.baseUrl,
+    });
+    const data = (res.data || {}) as Record<string, unknown>;
+    return {
+      id: String(data.id || ''),
+      transcript: String(data.transcript || ''),
+      confidence: typeof data.confidence === 'number' ? data.confidence : undefined,
+      duration: typeof data.duration === 'number' ? data.duration : undefined,
+      detected_language: data.detected_language as string | undefined,
+      audio_url: String(data.audio_url || resolved.audio_url || ''),
+      status: String(data.status || ''),
+      credit_info: data.credit_info as TranscriptionResult['credit_info'],
+      raw: data,
+    };
+  }
+
+  /**
+   * List transcriptions for the current user. Supports pagination, full-text
+   * search across transcripts, and a date-range filter (epoch ms).
+   */
+  async listTranscriptions(params?: TranscriptionListParams): Promise<TranscriptionListResult> {
+    const qs = new URLSearchParams();
+    if (params?.page != null) qs.set('page', String(params.page));
+    if (params?.limit != null) qs.set('limit', String(params.limit));
+    if (params?.search) qs.set('search', params.search);
+    if (params?.from_date != null) qs.set('from_date', String(params.from_date));
+    if (params?.to_date != null) qs.set('to_date', String(params.to_date));
+    const query = qs.toString();
+    const res = await doRequest<ZykaApiResponse<unknown> & { pagination?: TranscriptionListResult['pagination'] }>({
+      method: 'GET',
+      path: `/api/apps/transcription${query ? `?${query}` : ''}`,
+      token: this.token, baseUrl: this.baseUrl,
+    });
+    return {
+      data: ((res.data as unknown) as TranscriptionListResult['data']) || [],
+      pagination: res.pagination || { page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false },
+    };
+  }
+
+  /** Delete a transcription by ID. Returns true on success. */
+  async deleteTranscription(id: string): Promise<boolean> {
+    const res = await doRequest<ZykaApiResponse<unknown>>({
+      method: 'DELETE',
+      path: `/api/apps/transcription/${encodeURIComponent(id)}`,
+      token: this.token, baseUrl: this.baseUrl,
+    });
+    return res.status === 'success';
   }
 
   async createImageToSvg(params: ImageToSvgParams): Promise<GenerationResult> {

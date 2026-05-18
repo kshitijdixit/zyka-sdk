@@ -21,7 +21,7 @@ importers:
         specifier: ^12.0.0
         version: 12.1.0
       zyka-sdk:
-        specifier: ^0.4.8
+        specifier: ^0.4.10
         version: link:../core
     devDependencies:
       '@types/node':

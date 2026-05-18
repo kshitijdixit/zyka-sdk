@@ -591,6 +591,34 @@ export function registerGenerateApps(generate: Command): void {
     });
 
   generate
+    .command('transcription')
+    .description('Transcribe an audio file to text')
+    .requiredOption('--audio <path>', 'Audio URL or local path (MP3/WAV/M4A/etc.)')
+    .option('--language <code>', 'Language hint (e.g. en-US, hi-IN). Omit for auto-detect.')
+    .option('-o, --output <path>', 'Write transcript text to this file path')
+    .action(async (opts: Record<string, string | boolean>) => {
+      const { ZykaClient } = await import('zyka-sdk');
+      const client = new ZykaClient();
+      console.log('\n🗒️  Transcribing audio...');
+      try {
+        const params: any = { audio_url: opts.audio };
+        if (opts.language) params.language = opts.language;
+        const result = await client.createTranscription(params);
+        if (opts.output) {
+          const fs = await import('fs');
+          fs.writeFileSync(opts.output as string, result.transcript, 'utf-8');
+        }
+        console.log(`✅ Status: ${result.status}`);
+        if (result.detected_language) console.log(`🌐 Language: ${result.detected_language}`);
+        if (typeof result.duration === 'number') console.log(`⏱️  Duration: ${result.duration}s`);
+        if (typeof result.confidence === 'number') console.log(`📊 Confidence: ${result.confidence}`);
+        console.log(`📝 Transcript:\n${result.transcript}`);
+        if (opts.output) console.log(`💾 Saved to: ${opts.output}`);
+        console.log(`🆔 ID: ${result.id}\n`);
+      } catch (err: any) { console.error(`\n❌ Error: ${err.message}\n`); process.exit(1); }
+    });
+
+  generate
     .command('image-to-svg')
     .description('Convert an image to an SVG vector')
     .requiredOption('--image <path>', 'Image URL or local path')
