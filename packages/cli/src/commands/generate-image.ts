@@ -9,7 +9,8 @@ export function registerGenerateImage(generate: Command): void {
     .option('-s, --sub-model <sub_model>', 'Model variant (e.g. nano-banana-pro, nano-banana-2, flux-2-klein-9b, gpt-image-2)')
     .option('--size <size>', 'Output size (e.g. 1024x1024)')
     .option('--aspect-ratio <ratio>', 'Aspect ratio (16:9, 9:16, 1:1, 4:3, 3:4, auto)')
-    .option('--image <path>', 'Input image URL or local path (for img2img)')
+    .option('--image <path>', 'Input image URL or local path (for img2img). For gpt_image_2, auto-promoted to image_list: [image].')
+    .option('--image-list <paths...>', 'Multiple input image URLs or local paths (gpt_image_2 edit mode up to 16 refs; Nano Banana Pro batch). Repeat or space-separate.')
     .option('--negative-prompt <text>', 'Negative prompt (what to avoid)')
     .option('--resolution <res>', 'Resolution: 1K, 2K, 4K (Nano Banana Pro/2)')
     .option('--quality <quality>', 'Quality: standard, hd, auto, low, medium, high')
@@ -25,7 +26,7 @@ export function registerGenerateImage(generate: Command): void {
     .option('--description <text>', 'Description for the generation job')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
-    .action(async (opts: Record<string, string | boolean>) => {
+    .action(async (opts: Record<string, string | boolean | string[]>) => {
       const { ZykaClient } = await import('zyka-sdk');
       const client = new ZykaClient();
 
@@ -37,6 +38,7 @@ export function registerGenerateImage(generate: Command): void {
       if (opts.size) params.size = opts.size;
       if (opts.aspectRatio) params.aspect_ratio = opts.aspectRatio;
       if (opts.image) params.image = opts.image;
+      if (Array.isArray(opts.imageList) && opts.imageList.length > 0) params.image_list = opts.imageList;
       if (opts.negativePrompt) params.negative_prompt = opts.negativePrompt;
       if (opts.resolution) params.resolution = opts.resolution;
       if (opts.quality) params.quality = opts.quality;
