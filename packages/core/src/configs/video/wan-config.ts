@@ -84,6 +84,34 @@ export const WAN_VIDEO_CONFIG: Record<string, ModelConfig> = {
     supported_mime_types: ['image/png', 'image/jpeg', 'image/jpg', 'image/bmp', 'image/webp'],
     output_format: 'mp4',
   },
+
+  // WAN 3.0 — T2V / I2V / R2V auto-routed: `start_image_url` → I2V, any reference input → R2V.
+  // Duration is a free integer range (2–30s) rather than a fixed list.
+  'wan-3-0': {
+    quality: 'high',
+    supports_text_to_video: true,
+    supports_image_to_video: true,
+    supports_reference_to_video: true,
+    supports_first_last_frames: true,
+    supports_prompt_expansion: true,
+    supports_native_audio: true,
+    supports_audio: true,
+    supports_seed: true,
+    min_duration: 2,
+    max_duration: 30,
+    resolutions: ['480p', '720p', '1080p'],
+    aspect_ratios: ['adaptive', '16:9', '9:16', '1:1', '4:3', '3:4'],
+    default_duration: '5s',
+    default_resolution: '720p',
+    default_aspect_ratio: 'adaptive',
+    max_prompt_length: 5000,
+    max_multi_images: 10,
+    max_reference_videos: 5,
+    max_reference_audio: 5,
+    supports_negative_prompt: false,
+    supported_mime_types: ['image/png', 'image/jpeg', 'image/jpg', 'image/bmp', 'image/webp'],
+    output_format: 'mp4',
+  },
 };
 
 export const WAN_FALLBACK_CONFIG: ModelConfig = WAN_VIDEO_CONFIG['wan-2-6-t2v'];

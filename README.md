@@ -207,6 +207,52 @@ console.log(video.status);
 console.log(video.outputUrl);
 ```
 
+#### Reference-to-video (MiniMax H3 Max / WAN 3.0)
+
+```ts
+// Local paths in reference_*_urls are auto-uploaded
+const clip = await client.createVideo(
+  {
+    model: "minimax",
+    sub_model: "minimax-h3-max",
+    prompt: "The character from the reference walks through a busy Tokyo crossing at night",
+    reference_image_urls: ["./char-front.png", "./char-side.png"],
+    reference_video_urls: ["./walk-cycle.mp4"],
+    duration: 10,
+    resolution: "768P",
+    aspect_ratio: "adaptive",
+  },
+  { output: "./outputs/tokyo.mp4" },
+);
+
+// WAN 3.0 image-to-video with native audio (2–30s, up to 1080p)
+await client.createVideo({
+  model: "wan",
+  sub_model: "wan-3-0",
+  prompt: "Camera orbits the sports car as it idles, engine rumble",
+  start_image_url: "./car.jpg",
+  duration: 12,
+  resolution: "1080p",
+  audio: true,
+});
+```
+
+#### Edit-mode image models (`image_list`)
+
+```ts
+// grok_imagine v2, qwen_image_3, seedream_v5_pro, mai_image_2_5_pro (and gpt_image_2)
+// switch to edit mode when image_list is present. A single `image` is auto-promoted.
+await client.createImage(
+  {
+    model: "seedream_v5_pro",
+    prompt: "Put the subject in a red trench coat, keep the pose",
+    image_list: ["./ref1.jpg", "./ref2.jpg"],
+    size: "auto_2K",
+  },
+  { output: "./outputs/coat.png" },
+);
+```
+
 ### Generate Audio
 
 ```ts
@@ -554,8 +600,8 @@ const { warnings } = validateVideoParams({ model: 'wan', sub_model: 'wan-2-7', d
 
 | Category    | Examples                                                                                                         |
 | ----------- | ---------------------------------------------------------------------------------------------------------------- |
-| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`                                                 |
-| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `gpt_image_2`, `kling`, `grok_imagine`, `zyka_helion` |
+| Video       | `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`, `minimax`                                      |
+| Image       | `nano_banana`, `flux_1_schnell`, `flux_2_dev`, `flux_2_klein_9b`, `dall_e_3`, `gpt_image_1`, `gpt_image_2`, `kling`, `grok_imagine`, `qwen_image_3`, `seedream_v5_pro`, `mai_image_2_5_pro`, `zyka_helion` |
 | Audio / TTS | `elevenlabs`, `qwen3`, `chatterbox`, `minimax`, `voxcpm`, `voxcpm2`, `moss-tts`, `fish-audio`, `sarvam`, `gemini-tts` |
 
 ## Model Lists
@@ -600,10 +646,13 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | `wan-v2-2-animate-replace`    | `wan`        | Alibaba   | Video animate replace                     |
 | `wan-v2-2-animate-move`       | `wan`        | Alibaba   | Video animate move                        |
 | `wan-2-7`                     | `wan`        | Alibaba   | Text-to-video                             |
+| `wan-3-0`                     | `wan`        | Alibaba   | Text / image / reference-to-video, native audio, 2–30s, up to 1080p |
 | `grok-imagine-video`          | `grok`       | xAI       | Text-to-video, image-to-video             |
 | `ltx-2.3-text-to-video`       | `ltx`        | LTX       | Text-to-video                             |
 | `ltx-2.3-image-to-video`      | `ltx`        | LTX       | Image-to-video                            |
 | `aurora`                       | `aurora`     | Sync Labs | Lip sync (video/image + audio)            |
+| `minimax-h3`                  | `minimax`    | MiniMax   | Text / image-to-video (first + last frame), 5–15s, up to 4K |
+| `minimax-h3-max`              | `minimax`    | MiniMax   | Text / image / reference-to-video (≤9 images, ≤3 videos, ≤3 audio), 480P / 768P |
 
 ### Image Models
 
@@ -638,7 +687,11 @@ Use these tables when you need the exact SDK string, the provider behind it, and
 | `z-image-turbo`                 | `z_image_turbo`                 | Zyka                  | Fast text-to-image               |
 | `zyka-helion`                   | `zyka_helion`                   | Zyka                  | Fast text-to-image               |
 | `grok-imagine-image`            | `grok_imagine`                  | xAI                   | Text-to-image                    |
+| `grok-imagine-image-v2`         | `grok_imagine`                  | xAI                   | Grok Imagine 2.0 — text-to-image (1k/2k, 1–4 images) + edit via `image_list` (1–3) |
 | `qwen-image-2-pro`              | `qwen_image_2_pro`              | Qwen                  | Text-to-image                    |
+| `qwen-image-3`                  | `qwen_image_3`                  | Qwen                  | Text-to-image (up to 2048², 1–6 images) + edit via `image_list` (1–3) |
+| `seedream-5-pro`                | `seedream_v5_pro`               | ByteDance             | Text-to-image (up to 2048²) + edit via `image_list` (1–10) |
+| `mai-image-2-5-pro`             | `mai_image_2_5_pro`             | Microsoft             | Text-to-image (aspect-ratio based) + edit via `image_list` (1–10) |
 
 ### Audio / TTS Providers
 
@@ -689,6 +742,9 @@ npx zyka init my-zyka-project
 npx zyka render ./dist/promo.js --inputs '{"prompt":"A cinematic launch video"}'
 npx zyka generate image -m gpt_image_1 -p "A luxury watch ad" -o ./watch.png
 npx zyka generate video -m wan -p "A drone shot over mountains" -d 5 -o ./mountains.mp4
+npx zyka generate video -m minimax -s minimax-h3 -p "Slow dolly-in on the lighthouse" --image ./start.jpg --end-image ./end.jpg -d 8 --resolution 2K -o ./lighthouse.mp4
+npx zyka generate video -m wan -s wan-3-0 -p "Recreate the dance with this person" --reference-images ./person.png --reference-videos ./dance.mp4 -d 6 -o ./dance.mp4
+npx zyka generate image -m seedream_v5_pro -p "Red trench coat, keep the pose" --image-list ./ref1.jpg ./ref2.jpg --size auto_2K -o ./coat.png
 npx zyka generate tts --provider elevenlabs --voice-id VOICE_ID --script "Welcome to Zyka" -o ./voice.mp3
 ```
 

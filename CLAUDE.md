@@ -76,7 +76,7 @@ await client.createImage({ model: 'nano_banana', image: asset('photo.png'), prom
 
 ## Video Models
 
-The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`
+The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `infinite_talk`, `grok`, `ltx`, `aurora`, `minimax`
 
 ### sora (OpenAI Sora)
 ```js
@@ -117,9 +117,27 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 ```js
 { model: 'wan', sub_model: 'wan-2-6-t2v', prompt: '...', duration: 5 }
 ```
-- **sub_model**: `'wan-2-6-t2v'` (default), `'wan-2-7'`, `'wan-2-6-i2v'`, `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
+- **sub_model**: `'wan-2-6-t2v'` (default), `'wan-3-0'`, `'wan-2-7'`, `'wan-2-6-i2v'`, `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
 - **duration**: `5`, `10`, or `15` (number)
 - **size**: `'1280*720'`, `'1920*1080'`, `'720*1280'`, `'1080*1920'`
+
+#### wan-3-0 (WAN 3.0 — T2V / I2V / R2V with native audio)
+```js
+// Image-to-video with audio
+{ model: 'wan', sub_model: 'wan-3-0', prompt: '...', start_image_url: './car.jpg', duration: 12, resolution: '1080p', aspect_ratio: '16:9', audio: true }
+// Reference-to-video
+{ model: 'wan', sub_model: 'wan-3-0', prompt: '...', reference_image_urls: ['./person.png'], reference_video_urls: ['./dance.mp4'], duration: 6 }
+```
+- Routing: `start_image_url` (aliases `image_url`, `first_frame`) → I2V; any `reference_*_urls` / `file_url` / `web_url` → R2V; otherwise T2V
+- **prompt**: optional, ≤5000 chars
+- **end_image_url** (alias `last_frame`): last frame
+- **reference_image_urls** (≤10, alias `image_urls`), **reference_video_urls** (≤5, alias `video_urls`), **reference_audio_urls** (≤5, alias `audio_urls`) — local paths auto-uploaded
+- **duration**: integer `2`–`30` (default `5`)
+- **resolution**: `'480p'`, `'720p'` (default), `'1080p'`
+- **aspect_ratio**: `'adaptive'` (default), `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:4'`
+- **audio**: `true` (default) — generate native audio (`generate_audio: false` also honoured)
+- **enable_prompt_expansion**: default `true`; **enable_thinking**: default `false`; **seed**: optional
+- Credits/sec: 480p 6 · 720p 12 · 1080p 24
 
 ### infinite_talk (Talking Head)
 ```js
@@ -151,6 +169,24 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 - **video_url**: Source video or image to lip-sync (required) — local path or URL
 - **audio_url**: Audio to drive the lip sync (required) — local path or URL
 
+### minimax (MiniMax H3 / H3 Max)
+```js
+// H3 — image-to-video with first + last frame, up to 4K
+{ model: 'minimax', sub_model: 'minimax-h3', prompt: '...', image_url: './start.jpg', end_image_url: './end.jpg', duration: 8, resolution: '2K', aspect_ratio: '16:9', prompt_expansion_mode: 'quality' }
+// H3 Max — reference-to-video
+{ model: 'minimax', sub_model: 'minimax-h3-max', prompt: '...', reference_image_urls: ['./char-front.png', './char-side.png'], reference_video_urls: ['./walk.mp4'], reference_audio_urls: ['./ambience.mp3'], duration: 10, resolution: '768P', aspect_ratio: 'adaptive' }
+```
+- **sub_model**: `'minimax-h3'` (default), `'minimax-h3-max'`
+- **prompt**: required, 1–5000 chars
+- **image_url** (aliases `first_frame`, `start_image_url`): first frame → image-to-video; **end_image_url** (alias `last_frame`): last frame
+- **duration**: integer `5`–`15` (default `5`)
+- **resolution** (alias `size`): H3 `'480P'`, `'768P'`, `'2K'` (default), `'4K'`; H3 Max `'480P'`, `'768P'` (default)
+- **aspect_ratio**: `'21:9'`, `'16:9'` (default), `'4:3'`, `'1:1'`, `'3:4'`, `'9:16'`; H3 Max also `'adaptive'`
+- **prompt_expansion_mode**: H3 `'fast'` | `'balanced'` (default) | `'quality'`; H3 Max `'balanced'` | `'quality'`
+- **seed**: optional; **enable_safety_checker**: default `true`
+- **H3 Max only** — reference-to-video when any of: **reference_image_urls** (≤9), **reference_video_urls** (≤3), **reference_audio_urls** (≤3). Local paths auto-uploaded.
+- Credits/sec: H3 → 480P 6 · 768P 7.2 · 2K 15.6 · 4K 19.2; H3 Max → 480P 6 · 768P 9.6 (+ reference-token surcharge on R2V)
+
 ---
 
 ## Image Models
@@ -174,8 +210,51 @@ The `model` field must be one of: `sora`, `veo`, `kling`, `bytedance`, `wan`, `i
 | `phoenix_1_0` | Phoenix |
 | `z_image_turbo` | Fast |
 | `zyka_helion` | Fast Zyka-native model |
-| `grok_imagine` | xAI Grok Imagine Image |
+| `grok_imagine` | xAI Grok Imagine Image. Sub-models: `grok-imagine-image` (v1), `grok-imagine-image-v2` (2.0 — see below) |
 | `qwen_image_2_pro` | Qwen Image 2 Pro (Chinese/English) |
+| `qwen_image_3` | Qwen Image 3 (alias `qwen-image-3`). Sub-model `qwen-image-3`. Edit via `image_list` (1–3) |
+| `seedream_v5_pro` | ByteDance Seedream V5 Pro (aliases `seedream-v5-pro`, `seedream-5-pro`). Sub-model `seedream-5-pro`. Always 1 image. Edit via `image_list` (1–10) |
+| `mai_image_2_5_pro` | Microsoft MAI-Image-2.5-Pro (aliases `mai-image-2-5-pro`, `mai-image-2.5-pro`). Sub-model `mai-image-2-5-pro`. Always 1 image. Edit via `image_list` (1–10) |
+
+### Edit mode via `image_list`
+`grok_imagine` (v2), `qwen_image_3`, `seedream_v5_pro`, `mai_image_2_5_pro` and `gpt_image_2` auto-route to **edit** mode when `image_list` is present. Passing a single `image` is auto-promoted to `image_list: [image]` for these models; local paths are auto-uploaded.
+
+### grok_imagine — `grok-imagine-image-v2` (Grok Imagine Image 2.0)
+```js
+{ model: 'grok_imagine', sub_model: 'grok-imagine-image-v2', prompt: '...', num_images: 2, aspect_ratio: '16:9', resolution: '2k', quality: 'medium', output_format: 'png' }
+{ model: 'grok_imagine', sub_model: 'grok-imagine-image-v2', prompt: 'Make it snowy', image_list: ['./ramen.jpg'], aspect_ratio: 'auto' }  // edit
+```
+- **num_images**: 1–4 (default 1)
+- **aspect_ratio**: `'2:1'`, `'20:9'`, `'19.5:9'`, `'16:9'`, `'4:3'`, `'3:2'`, `'1:1'`, `'2:3'`, `'3:4'`, `'9:16'`, `'9:19.5'`, `'9:20'`, `'1:2'`, `'auto'` — default `'1:1'` (t2i) / `'auto'` (edit)
+- **resolution**: `'1k'` (default), `'2k'`; **quality**: `'low'`, `'medium'` (default; t2i only); **output_format**: `'jpeg'` (default), `'png'`, `'webp'`
+- **image_list**: 1–3 refs → edit mode
+
+### qwen_image_3
+```js
+{ model: 'qwen_image_3', prompt: '...', negative_prompt: 'blurry, text', size: '2048*2048', num_images: 3, output_format: 'png' }
+{ model: 'qwen_image_3', prompt: 'Change colour to green', image_list: ['./earbuds.png'], size: '1024*1024' }  // edit
+```
+- **prompt**: ≤5000 chars; **negative_prompt**: optional
+- **size**: `'square'`, `'square_hd'`, `'landscape_16_9'`, `'portrait_16_9'`, `'landscape_4_3'`, `'portrait_4_3'` or `'512*512'`, `'768*768'`, `'1024*1024'` (default), `'2048*2048'`, `'1024*768'`, `'768*1024'`, `'1280*720'`, `'720*1280'` (`x` separator also OK)
+- **num_images**: 1–6 (default 1); **output_format**: default `'png'`; **image_list**: 1–3 refs → edit mode
+
+### seedream_v5_pro
+```js
+{ model: 'seedream_v5_pro', prompt: '...', size: '2048*1536', output_format: 'png' }
+{ model: 'seedream_v5_pro', prompt: 'Red trench coat, keep the pose', image_list: ['./ref1.jpg', './ref2.jpg'], size: 'auto_2K' }  // edit
+```
+- **prompt**: ≤5000 chars
+- **size**: `'auto_1K'`, `'auto_2K'` (default), `'square'`, `'square_hd'`, `'portrait_4_3'`, `'portrait_16_9'`, `'landscape_4_3'`, `'landscape_16_9'`, or explicit — Tier 1 (≤1536²): `'1024*1024'`, `'1280*720'`, `'720*1280'`, `'1152*864'`, `'864*1152'`, `'1344*768'`, `'768*1344'`, `'1536*1024'`, `'1024*1536'`, `'1440*960'`, `'960*1440'`, `'1536*1536'`; Tier 2 (≤2048²): `'2048*2048'`, `'2048*1152'`, `'1152*2048'`, `'2048*1536'`, `'1536*2048'`, `'1920*1280'`, `'1280*1920'`, `'2048*878'`
+- **image_list**: 1–10 refs → edit mode. Always returns 1 image.
+
+### mai_image_2_5_pro
+```js
+{ model: 'mai_image_2_5_pro', prompt: '...', aspect_ratio: '16:9', output_format: 'webp' }
+{ model: 'mai_image_2_5_pro', prompt: 'Add a sleeping cat', image_list: ['./coffee-shop.png'], aspect_ratio: 'auto' }  // edit
+```
+- **aspect_ratio**: `'auto'` (default), `'1:1'`, `'4:3'`, `'3:4'`, `'16:9'`, `'9:16'`, `'3:2'`, `'2:3'`
+- **output_format**: `'jpeg'`, `'png'` (default), `'webp'`; **image_list**: 1–10 refs → edit mode. Always returns 1 image.
+- Credits are token-based (~21 cr for a typical t2i); quote via `POST /api/credits/calculate/image-generation`.
 
 ---
 
@@ -354,6 +433,8 @@ The SDK ships per-model configs (mirroring the Zyka frontend) describing each mo
 - `prompt` / `negative_prompt` longer than the model's max
 - `cfg_scale` outside the supported range, or set on a model that ignores it
 - `turbo_mode` set on a model that doesn't support it
+- Too many `reference_image_urls` / `reference_video_urls` / `reference_audio_urls` for reference-to-video models (minimax-h3-max, wan-3-0)
+- `duration` outside a model's min/max window (e.g. minimax 5–15s, wan-3-0 2–30s)
 - Local **image / audio / video files** larger than the model's size cap
 - Local files with MIME types not in the supported list (by extension)
 - Audio duration limits as heads-up notes (e.g. OmniHuman v1.5: 60s @ 720p / 30s @ 1080p; WAN: 2–30s window)
@@ -453,6 +534,8 @@ pnpm --filter zyka build
 ```
 packages/core/src/
   types.ts        — All types (models, params, sub-models)
+  validate.ts     — Soft-warning validation against per-model configs
+  configs/video/  — Per-provider ModelConfig maps (sora, veo, kling, bytedance, wan, grok, aurora, infinitetalk, ltx, minimax)
   client.ts       — ZykaClient (API methods + auto-upload + polling + download)
   file-utils.ts   — Local file detection, upload, download
   asset.ts        — asset() helper (public/ folder convention)

@@ -315,6 +315,50 @@ function checkAudioDurationLimits(params: VideoGenerationParams, cfg: ModelConfi
   }
 }
 
+function checkReferenceCounts(params: VideoGenerationParams, cfg: ModelConfig, warnings: string[]): void {
+  // Reference-to-video models (minimax-h3-max, wan-3-0) cap how many reference
+  // images / videos / audio clips you can pass. `image_urls` / `video_urls` /
+  // `audio_urls` are the server-side aliases (Seedance 2.0, WAN 3.0).
+  const modelLabel = params.sub_model || params.model;
+  const count = (a: unknown, b: unknown): number => {
+    const arr = (Array.isArray(a) ? a : Array.isArray(b) ? b : []) as unknown[];
+    return arr.length;
+  };
+
+  const images = count(params.reference_image_urls, params.image_urls);
+  if (cfg.max_multi_images !== undefined && images > cfg.max_multi_images) {
+    warnings.push(
+      `[zyka-sdk] ${images} reference images passed but '${modelLabel}' supports at most ${cfg.max_multi_images}.`
+    );
+  }
+  const videos = count(params.reference_video_urls, params.video_urls);
+  if (cfg.max_reference_videos !== undefined && videos > cfg.max_reference_videos) {
+    warnings.push(
+      `[zyka-sdk] ${videos} reference videos passed but '${modelLabel}' supports at most ${cfg.max_reference_videos}.`
+    );
+  }
+  const audios = count(params.reference_audio_urls, params.audio_urls);
+  if (cfg.max_reference_audio !== undefined && audios > cfg.max_reference_audio) {
+    warnings.push(
+      `[zyka-sdk] ${audios} reference audio clips passed but '${modelLabel}' supports at most ${cfg.max_reference_audio}.`
+    );
+  }
+}
+
+function checkLocalFileList(
+  list: unknown,
+  fieldName: string,
+  modelLabel: string,
+  cfg: ModelConfig,
+  kind: 'image' | 'audio' | 'video',
+  warnings: string[]
+): void {
+  if (!Array.isArray(list)) return;
+  list.forEach((entry, i) => {
+    if (typeof entry === 'string') checkLocalFile(entry, `${fieldName}[${i}]`, modelLabel, cfg, kind, warnings);
+  });
+}
+
 // ─────────────────────────────────────────────
 // Public API
 // ─────────────────────────────────────────────
@@ -350,15 +394,21 @@ export function validateVideoParams(params: VideoGenerationParams): ValidationRe
   checkPersonCount(params, cfg, warnings);
   checkShotType(params, cfg, warnings);
   checkAudioDurationLimits(params, cfg, warnings);
+  checkReferenceCounts(params, cfg, warnings);
 
   // Local file checks (size + MIME)
   if (params.image_url) checkLocalFile(params.image_url, 'image_url', modelLabel, cfg, 'image', warnings);
+  if (params.start_image_url) checkLocalFile(params.start_image_url, 'start_image_url', modelLabel, cfg, 'image', warnings);
+  if (params.end_image_url) checkLocalFile(params.end_image_url, 'end_image_url', modelLabel, cfg, 'image', warnings);
   if (params.first_frame) checkLocalFile(params.first_frame, 'first_frame', modelLabel, cfg, 'image', warnings);
   if (params.last_frame) checkLocalFile(params.last_frame, 'last_frame', modelLabel, cfg, 'image', warnings);
   if (params.inputReference) checkLocalFile(params.inputReference, 'inputReference', modelLabel, cfg, 'image', warnings);
   if (params.audio_url) checkLocalFile(params.audio_url, 'audio_url', modelLabel, cfg, 'audio', warnings);
   if (params.audio_url_2) checkLocalFile(params.audio_url_2, 'audio_url_2', modelLabel, cfg, 'audio', warnings);
   if (params.video_url) checkLocalFile(params.video_url, 'video_url', modelLabel, cfg, 'video', warnings);
+  checkLocalFileList(params.reference_image_urls, 'reference_image_urls', modelLabel, cfg, 'image', warnings);
+  checkLocalFileList(params.reference_video_urls, 'reference_video_urls', modelLabel, cfg, 'video', warnings);
+  checkLocalFileList(params.reference_audio_urls, 'reference_audio_urls', modelLabel, cfg, 'audio', warnings);
 
   return { warnings, config: cfg };
 }

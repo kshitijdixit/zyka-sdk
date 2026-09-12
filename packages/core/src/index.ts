@@ -32,6 +32,7 @@ export {
   AURORA_VIDEO_CONFIG,
   INFINITETALK_VIDEO_CONFIG,
   LTX_VIDEO_CONFIG,
+  MINIMAX_VIDEO_CONFIG,
 } from './configs';
 export type { ModelConfig } from './configs';
 
@@ -46,6 +47,7 @@ export type {
   WanSubModel,
   GrokVideoSubModel,
   LtxSubModel,
+  MinimaxVideoSubModel,
   ImageModel,
   ImageSubModel,
   TTSProvider,

@@ -4,18 +4,22 @@ export function registerGenerateVideo(generate: Command): void {
   generate
     .command('video')
     .description('Generate a video from a text prompt')
-    .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk, grok, ltx, aurora)')
+    .requiredOption('-m, --model <model>', 'Video model (sora, veo, kling, bytedance, wan, infinite_talk, grok, ltx, aurora, minimax)')
     .requiredOption('-p, --prompt <prompt>', 'Text prompt')
-    .option('-s, --sub-model <sub_model>', 'Model variant (e.g. sora-2, veo-3.1-generate-001, Seedance 2.0, ltx-2.3-text-to-video)')
+    .option('-s, --sub-model <sub_model>', 'Model variant (e.g. sora-2, veo-3.1-generate-001, Seedance 2.0, ltx-2.3-text-to-video, wan-3-0, minimax-h3, minimax-h3-max)')
     .option('-d, --duration <duration>', 'Duration in seconds')
-    .option('-a, --aspect-ratio <ratio>', 'Aspect ratio (16:9, 9:16, 1:1)')
-    .option('--image <path>', 'Image URL or local path (for image-to-video)')
+    .option('-a, --aspect-ratio <ratio>', 'Aspect ratio (16:9, 9:16, 1:1, adaptive)')
+    .option('--image <path>', 'Image URL or local path (for image-to-video; first/start frame for minimax, wan-3-0)')
+    .option('--end-image <path>', 'End/last frame image URL or local path (minimax, wan-3-0)')
+    .option('--reference-images <paths...>', 'Reference image URLs or local paths for reference-to-video (minimax-h3-max ≤9, wan-3-0 ≤10)')
+    .option('--reference-videos <paths...>', 'Reference video URLs or local paths for reference-to-video (minimax-h3-max ≤3, wan-3-0 ≤5)')
+    .option('--reference-audios <paths...>', 'Reference audio URLs or local paths for reference-to-video (minimax-h3-max ≤3, wan-3-0 ≤5)')
     .option('--audio <path>', 'Audio URL or local path (for infinite_talk, wan)')
     .option('--audio-2 <path>', 'Second audio URL or local path (for infinite_talk multi-person)')
     .option('--video <path>', 'Video URL or local path (for V2V)')
     .option('--negative-prompt <text>', 'Negative prompt (what to avoid)')
     .option('--mode <mode>', 'Generation mode: std or pro (Kling)')
-    .option('--resolution <res>', 'Resolution: 480p, 720p, 1080p (Bytedance)')
+    .option('--resolution <res>', 'Resolution: 480p, 720p, 1080p (Bytedance, wan-3-0); 480P, 768P, 2K, 4K (minimax)')
     .option('--first-frame <path>', 'First frame image path or URL (Veo 3.1)')
     .option('--last-frame <path>', 'Last frame image path or URL (Veo 3.1)')
     .option('--size <size>', 'Output size (e.g. 1280x720, 720p)')
@@ -25,6 +29,9 @@ export function registerGenerateVideo(generate: Command): void {
     .option('--cfg-scale <n>', 'CFG scale 0-1 (Kling v1/v1-6)')
     .option('--video-quality <level>', 'Video quality: low, medium, high, maximum (WAN)')
     .option('--enable-prompt-expansion', 'Enable prompt expansion (WAN)')
+    .option('--prompt-expansion-mode <mode>', 'Prompt expansion mode: fast, balanced, quality (minimax)')
+    .option('--no-generate-audio', 'Disable native audio generation (wan-3-0; on by default)')
+    .option('--enable-thinking', 'Enable model thinking before generation (wan-3-0)')
     .option('--guidance-scale <n>', 'Guidance scale (WAN)')
     .option('--num-inference-steps <n>', 'Number of inference steps (WAN)')
     .option('--camera-fixed', 'Keep camera fixed (Bytedance)')
@@ -39,7 +46,7 @@ export function registerGenerateVideo(generate: Command): void {
     .option('--description <text>', 'Description for the generation job')
     .option('-o, --output <path>', 'Download result to this file path')
     .option('--no-wait', 'Return immediately without waiting for completion')
-    .action(async (opts: Record<string, string | boolean>) => {
+    .action(async (opts: Record<string, string | boolean | string[]>) => {
       const { ZykaClient } = await import('zyka-sdk');
       const client = new ZykaClient();
 
@@ -51,6 +58,10 @@ export function registerGenerateVideo(generate: Command): void {
       if (opts.duration) params.duration = opts.duration;
       if (opts.aspectRatio) params.aspect_ratio = opts.aspectRatio;
       if (opts.image) params.image_url = opts.image;
+      if (opts.endImage) params.end_image_url = opts.endImage;
+      if (Array.isArray(opts.referenceImages) && opts.referenceImages.length > 0) params.reference_image_urls = opts.referenceImages;
+      if (Array.isArray(opts.referenceVideos) && opts.referenceVideos.length > 0) params.reference_video_urls = opts.referenceVideos;
+      if (Array.isArray(opts.referenceAudios) && opts.referenceAudios.length > 0) params.reference_audio_urls = opts.referenceAudios;
       if (opts.audio) params.audio_url = opts.audio;
       if (opts.audio2) params.audio_url_2 = opts.audio2;
       if (opts.video) params.video_url = opts.video;
@@ -66,6 +77,9 @@ export function registerGenerateVideo(generate: Command): void {
       if (opts.cfgScale) params.cfg_scale = parseFloat(opts.cfgScale as string);
       if (opts.videoQuality) params.video_quality = opts.videoQuality;
       if (opts.enablePromptExpansion) params.enable_prompt_expansion = true;
+      if (opts.promptExpansionMode) params.prompt_expansion_mode = opts.promptExpansionMode;
+      if (opts.generateAudio === false) params.audio = false;
+      if (opts.enableThinking) params.enable_thinking = true;
       if (opts.guidanceScale) params.guidance_scale = parseFloat(opts.guidanceScale as string);
       if (opts.numInferenceSteps) params.num_inference_steps = parseInt(opts.numInferenceSteps as string, 10);
       if (opts.cameraFixed) params.camera_fixed = true;

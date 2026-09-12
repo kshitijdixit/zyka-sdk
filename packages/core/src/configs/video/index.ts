@@ -8,6 +8,7 @@ import { GROK_VIDEO_CONFIG, GROK_FALLBACK_CONFIG } from './grok-config';
 import { AURORA_VIDEO_CONFIG, AURORA_FALLBACK_CONFIG } from './aurora-config';
 import { INFINITETALK_VIDEO_CONFIG, INFINITETALK_FALLBACK_CONFIG } from './infinitetalk-config';
 import { LTX_VIDEO_CONFIG, LTX_FALLBACK_CONFIG } from './ltx-config';
+import { MINIMAX_VIDEO_CONFIG, MINIMAX_FALLBACK_CONFIG } from './minimax-config';
 
 export {
   SORA_VIDEO_CONFIG,
@@ -28,6 +29,8 @@ export {
   INFINITETALK_FALLBACK_CONFIG,
   LTX_VIDEO_CONFIG,
   LTX_FALLBACK_CONFIG,
+  MINIMAX_VIDEO_CONFIG,
+  MINIMAX_FALLBACK_CONFIG,
 };
 
 interface ProviderEntry {
@@ -45,6 +48,7 @@ export const VIDEO_CONFIGS_BY_MODEL: Record<string, ProviderEntry> = {
   aurora: { configs: AURORA_VIDEO_CONFIG, fallback: AURORA_FALLBACK_CONFIG },
   infinite_talk: { configs: INFINITETALK_VIDEO_CONFIG, fallback: INFINITETALK_FALLBACK_CONFIG },
   ltx: { configs: LTX_VIDEO_CONFIG, fallback: LTX_FALLBACK_CONFIG },
+  minimax: { configs: MINIMAX_VIDEO_CONFIG, fallback: MINIMAX_FALLBACK_CONFIG },
 };
 
 /**

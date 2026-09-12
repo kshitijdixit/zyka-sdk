@@ -56,8 +56,9 @@ export interface ZykaConfig {
  * | `wan`           | text/image-to-video | Alibaba WAN                               |
  * | `infinite_talk` | image-to-video    | Talking-head animation, requires audio      |
  * | `aurora`        | video/image+audio | AI lip-sync (Sync Labs Aurora)              |
+ * | `minimax`       | text/image/reference-to-video | MiniMax H3 / H3 Max (Hailuo)    |
  */
-export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok' | 'ltx' | 'aurora';
+export type VideoModel = 'sora' | 'veo' | 'kling' | 'bytedance' | 'wan' | 'infinite_talk' | 'grok' | 'ltx' | 'aurora' | 'minimax';
 
 // Sub-model types for video
 export type SoraSubModel = 'sora-2' | 'sora-2-pro';
@@ -74,10 +75,11 @@ export type KlingVideoSubModel =
   | 'kling-o3-pro-v2v-edit' | 'kling-v3-pro-motion-control'
   | 'multi-image-to-video' | 'kling-video-o1';
 export type BytedanceSubModel = 'Seedance V1.5 Pro' | 'OmniHuman' | 'OmniHuman v1.5' | 'Seedance 2.0' | 'Seedance 2.0 Fast';
-export type WanSubModel = 'wan-2-6-t2v' | 'wan-2-6-i2v' | 'wan-2-5-i2v' | 'wan-v2-2-animate-replace' | 'wan-v2-2-animate-move' | 'wan-2-7';
+export type WanSubModel = 'wan-2-6-t2v' | 'wan-2-6-i2v' | 'wan-2-5-i2v' | 'wan-v2-2-animate-replace' | 'wan-v2-2-animate-move' | 'wan-2-7' | 'wan-3-0';
 export type GrokVideoSubModel = 'grok-imagine-video';
 export type LtxSubModel = 'ltx-2.3-text-to-video' | 'ltx-2.3-image-to-video';
-export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | GrokVideoSubModel | LtxSubModel | string;
+export type MinimaxVideoSubModel = 'minimax-h3' | 'minimax-h3-max';
+export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | BytedanceSubModel | WanSubModel | GrokVideoSubModel | LtxSubModel | MinimaxVideoSubModel | string;
 
 /**
  * Video generation parameters.
@@ -101,10 +103,18 @@ export type VideoSubModel = SoraSubModel | VeoSubModel | KlingVideoSubModel | By
  * @example
  * // Infinite Talk (talking head)
  * { model: 'infinite_talk', image_url: 'https://...', audio_url: 'https://...' }
+ *
+ * @example
+ * // MiniMax H3 (image-to-video with first + last frame)
+ * { model: 'minimax', sub_model: 'minimax-h3', prompt: 'Slow dolly-in', image_url: './start.jpg', end_image_url: './end.jpg', duration: 8, resolution: '2K' }
+ *
+ * @example
+ * // WAN 3.0 (reference-to-video)
+ * { model: 'wan', sub_model: 'wan-3-0', prompt: 'Recreate the dance', reference_image_urls: ['./person.png'], reference_video_urls: ['./dance.mp4'], duration: 6 }
  */
 export interface VideoGenerationParams {
   /**
-   * Video model. Must be one of: `'sora'`, `'veo'`, `'kling'`, `'bytedance'`, `'wan'`, `'infinite_talk'`
+   * Video model. Must be one of: `'sora'`, `'veo'`, `'kling'`, `'bytedance'`, `'wan'`, `'infinite_talk'`, `'grok'`, `'ltx'`, `'aurora'`, `'minimax'`
    */
   model: VideoModel;
 
@@ -115,8 +125,9 @@ export interface VideoGenerationParams {
    * - **veo**: `'veo-2.0-generate-001'`, `'veo-3.0-generate-001'`, `'veo-3.1-generate-001'`, etc.
    * - **kling**: `'motion-control'` (default), `'kling-v1'` thru `'kling-v3-pro'`, `'kling-o3'`, `'kling-o3-pro'`, `'multi-image-to-video'`, `'kling-video-o1'`
    * - **bytedance**: `'Seedance V1.5 Pro'` (default), `'Seedance 2.0'`, `'Seedance 2.0 Fast'`, `'OmniHuman'`, `'OmniHuman v1.5'`
-   * - **wan**: `'wan-2-6-t2v'` (default, text-to-video), `'wan-2-7'`, `'wan-2-6-i2v'` (image-to-video), `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
+   * - **wan**: `'wan-2-6-t2v'` (default, text-to-video), `'wan-3-0'` (T2V / I2V / R2V + native audio), `'wan-2-7'`, `'wan-2-6-i2v'` (image-to-video), `'wan-2-5-i2v'`, `'wan-v2-2-animate-replace'`, `'wan-v2-2-animate-move'`
    * - **ltx**: `'ltx-2.3-text-to-video'` (default), `'ltx-2.3-image-to-video'`
+   * - **minimax**: `'minimax-h3'` (default, T2V / I2V up to 4K), `'minimax-h3-max'` (T2V / I2V / reference-to-video, 480P / 768P)
    */
   sub_model?: VideoSubModel;
 
@@ -132,7 +143,8 @@ export interface VideoGenerationParams {
    * - **veo**: 4-8 seconds (string, default `'8'`)
    * - **kling**: `'5'` or `'10'` for most; `'3'-'10'` for kling-video-o1; `'3'-'15'` for v3/o3
    * - **bytedance**: `'4'` to `'12'` (string, default `'5'`)
-   * - **wan**: `5`, `10`, or `15` (number, default `5`)
+   * - **wan**: `5`, `10`, or `15` (number, default `5`); `wan-3-0`: any integer `2`–`30`
+   * - **minimax**: integer `5`–`15` (default `5`)
    */
   duration?: number | string;
 
@@ -149,6 +161,7 @@ export interface VideoGenerationParams {
    * - **sora**: `'720x1280'`, `'1280x720'`, `'1024x1792'`, `'1792x1024'`
    * - **veo**: `'720p'`, `'1080p'`, `'4k'`
    * - **wan**: `'1280*720'`, `'1920*1080'`, `'720*1280'`, `'1080*1920'`
+   * - **minimax**: alias of `resolution` (`'480P'`, `'768P'`, `'2K'`, `'4K'`)
    */
   size?: string;
 
@@ -157,13 +170,20 @@ export interface VideoGenerationParams {
    * - **veo**: `'16:9'`, `'9:16'` (required)
    * - **kling**: `'16:9'`, `'9:16'`, `'1:1'`
    * - **bytedance**: `'21:9'`, `'16:9'`, `'4:3'`, `'1:1'`, `'3:4'`, `'9:16'`
+   * - **minimax-h3**: `'21:9'`, `'16:9'`, `'4:3'`, `'1:1'`, `'3:4'`, `'9:16'` (default `'16:9'`)
+   * - **minimax-h3-max**: `'adaptive'` + the H3 list
+   * - **wan-3-0**: `'adaptive'` (default), `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:4'`
    */
   aspect_ratio?: string;
 
   // ── Image/Audio inputs ──
 
-  /** Image URL for image-to-video (kling, wan i2v, infinite_talk) */
+  /** Image URL for image-to-video (kling, wan i2v, infinite_talk, minimax first frame, wan-3-0 start frame) */
   image_url?: string;
+  /** Start-frame image for `wan-3-0` (alias of `image_url` / `first_frame`) — local path or URL */
+  start_image_url?: string;
+  /** End-frame image for `minimax` and `wan-3-0` (alias of `last_frame`) — local path or URL */
+  end_image_url?: string;
   /** Audio URL for audio-driven video (infinite_talk, wan) */
   audio_url?: string;
   /** Second audio URL for multi-person infinite_talk */
@@ -212,7 +232,13 @@ export interface VideoGenerationParams {
 
   // ── Bytedance-specific ──
 
-  /** Bytedance resolution: `'480p'`, `'720p'`, `'1080p'` */
+  /**
+   * Output resolution.
+   * - **bytedance**: `'480p'`, `'720p'`, `'1080p'`
+   * - **wan-3-0**: `'480p'`, `'720p'` (default), `'1080p'`
+   * - **minimax-h3**: `'480P'`, `'768P'`, `'2K'` (default), `'4K'`
+   * - **minimax-h3-max**: `'480P'`, `'768P'` (default)
+   */
   resolution?: string;
   /** Bytedance camera fixed */
   camera_fixed?: boolean;
@@ -229,6 +255,32 @@ export interface VideoGenerationParams {
   num_inference_steps?: number;
   /** WAN video quality: `'low'`, `'medium'`, `'high'`, `'maximum'` (v2.2 models) */
   video_quality?: 'low' | 'medium' | 'high' | 'maximum';
+  /** WAN 3.0: generate native audio alongside the video (default `true`). `generate_audio: false` is also honoured. */
+  audio?: boolean;
+  /** WAN 3.0: enable model "thinking" before generation (default `false`) */
+  enable_thinking?: boolean;
+  /** WAN 3.0: extra reference source — arbitrary file URL */
+  file_url?: string;
+  /** WAN 3.0: extra reference source — web page URL */
+  web_url?: string;
+
+  // ── Reference-to-video (minimax-h3-max, wan-3-0) ──
+
+  /** Reference image URLs / local paths. minimax-h3-max: ≤9; wan-3-0: ≤10 (alias `image_urls`) */
+  reference_image_urls?: string[];
+  /** Reference video URLs / local paths. minimax-h3-max: ≤3; wan-3-0: ≤5 (alias `video_urls`) */
+  reference_video_urls?: string[];
+  /** Reference audio URLs / local paths. minimax-h3-max: ≤3; wan-3-0: ≤5 (alias `audio_urls`) */
+  reference_audio_urls?: string[];
+
+  // ── MiniMax-specific ──
+
+  /**
+   * MiniMax prompt expansion mode.
+   * - **minimax-h3**: `'fast'`, `'balanced'` (default), `'quality'`
+   * - **minimax-h3-max**: `'balanced'` (default), `'quality'`
+   */
+  prompt_expansion_mode?: 'fast' | 'balanced' | 'quality';
 
   // ── Infinite Talk-specific ──
 
@@ -311,6 +363,10 @@ export interface VideoGenerationParams {
  * | `gpt_image_1_5`                    | `gpt-image-1.5`                  | OpenAI GPT Image 1.5                  |
  * | `kling`                            | `kling-v1` thru `kling-image-v3` | Kling AI Image                        |
  * | `z_image_turbo`                    | `z-image-turbo`                  | Z Image Turbo (fast)                  |
+ * | `grok_imagine`                     | `grok-imagine-image`, `grok-imagine-image-v2` | xAI Grok Imagine; v2 edits via `image_list` (1-3) |
+ * | `qwen_image_3`                     | `qwen-image-3`                   | Qwen Image 3; edits via `image_list` (1-3)  |
+ * | `seedream_v5_pro`                  | `seedream-5-pro`                 | ByteDance Seedream V5 Pro; edits via `image_list` (1-10) |
+ * | `mai_image_2_5_pro`                | `mai-image-2-5-pro`              | Microsoft MAI-Image-2.5-Pro; edits via `image_list` (1-10) |
  */
 export type ImageModel =
   | 'nano_banana' | 'flux_2_dev' | 'flux_1_schnell' | 'flux_2_klein_9b'
@@ -321,6 +377,9 @@ export type ImageModel =
   | 'gpt-image-1' | 'gpt-image-1-mini' | 'gpt-image-1.5' | 'gpt-image-2'
   | 'kling' | 'z_image_turbo'
   | 'zyka_helion' | 'grok_imagine' | 'qwen_image_2_pro'
+  | 'qwen_image_3' | 'qwen-image-3'
+  | 'seedream_v5_pro' | 'seedream-v5-pro' | 'seedream-5-pro'
+  | 'mai_image_2_5_pro' | 'mai-image-2-5-pro' | 'mai-image-2.5-pro'
   | string;
 
 export type ImageSubModel =
@@ -335,6 +394,10 @@ export type ImageSubModel =
   | 'kling-image-v3' | 'kling-image-v3-text-to-image'
   | 'z-image-turbo'
   | 'nano-banana-2' | 'zyka-helion' | 'grok-imagine-image' | 'qwen-image-2-pro'
+  | 'grok-imagine-image-v2' | 'grok-imagine-image-v2.0'
+  | 'qwen-image-3'
+  | 'seedream-5-pro' | 'seedream-v5-pro'
+  | 'mai-image-2-5-pro'
   | string;
 
 /**
@@ -359,6 +422,14 @@ export type ImageSubModel =
  * @example
  * // Flux 1 Schnell (fast)
  * { model: 'flux_1_schnell', prompt: 'A dog running on the beach', size: '1024x1024' }
+ *
+ * @example
+ * // Grok Imagine Image 2.0 (2K, 2 images)
+ * { model: 'grok_imagine', sub_model: 'grok-imagine-image-v2', prompt: 'A neon ramen shop', num_images: 2, aspect_ratio: '16:9', resolution: '2k' }
+ *
+ * @example
+ * // Seedream V5 Pro edit (local refs auto-uploaded)
+ * { model: 'seedream_v5_pro', prompt: 'Put the subject in a red trench coat', image_list: ['./ref1.jpg', './ref2.jpg'], size: 'auto_2K' }
  */
 export interface ImageGenerationParams {
   /**
@@ -371,10 +442,14 @@ export interface ImageGenerationParams {
    * Sub-model variant (auto-detected from model if omitted).
    * - **nano_banana**: `'nano-banana-1'` (default), `'nano-banana-pro'`
    * - **kling**: `'kling-v1'` (default), `'kling-v2'`, `'omni-image'`, `'kling-image-v3'`, etc.
+   * - **grok_imagine**: `'grok-imagine-image'`, `'grok-imagine-image-v2'`
+   * - **qwen_image_3**: `'qwen-image-3'`
+   * - **seedream_v5_pro**: `'seedream-5-pro'`
+   * - **mai_image_2_5_pro**: `'mai-image-2-5-pro'`
    */
   sub_model?: ImageSubModel;
 
-  /** Text prompt describing the image */
+  /** Text prompt describing the image (qwen_image_3 / seedream_v5_pro: ≤5000 chars) */
   prompt: string;
 
   /**
@@ -384,32 +459,69 @@ export interface ImageGenerationParams {
    * - **DALL-E 2**: `'256x256'`, `'512x512'`, `'1024x1024'`
    * - **DALL-E 3**: `'1024x1024'`, `'1792x1024'`, `'1024x1792'`
    * - **GPT Image**: `'1024x1024'`, `'1536x1024'`, `'1024x1536'`, `'auto'`
+   * - **qwen_image_3**: fal enums (`'square'`, `'square_hd'`, `'landscape_16_9'`, `'portrait_16_9'`, `'landscape_4_3'`, `'portrait_4_3'`)
+   *   or explicit `'512*512'`, `'768*768'`, `'1024*1024'` (default), `'2048*2048'`, `'1024*768'`, `'768*1024'`, `'1280*720'`, `'720*1280'` (`x` separator also OK)
+   * - **seedream_v5_pro**: `'auto_1K'`, `'auto_2K'` (default), `'square'`, `'square_hd'`, `'portrait_4_3'`, `'portrait_16_9'`, `'landscape_4_3'`, `'landscape_16_9'`,
+   *   or explicit sizes up to `'2048*2048'` (e.g. `'1024*1024'`, `'1280*720'`, `'1536*1536'`, `'2048*1536'`, `'2048*878'`)
    */
   size?: string;
 
-  /** Resolution for Nano Banana Pro: `'1K'`, `'2K'`, `'4K'` */
+  /**
+   * Resolution.
+   * - **Nano Banana Pro**: `'1K'`, `'2K'`, `'4K'`
+   * - **grok_imagine (v2)**: `'1k'` (default), `'2k'`
+   */
   resolution?: string;
 
   /**
-   * Aspect ratio (Kling images):
-   * `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:4'`, `'3:2'`, `'2:3'`, `'21:9'`, `'auto'`
+   * Aspect ratio.
+   * - **Kling**: `'16:9'`, `'9:16'`, `'1:1'`, `'4:3'`, `'3:4'`, `'3:2'`, `'2:3'`, `'21:9'`, `'auto'`
+   * - **grok_imagine (v2)**: `'2:1'`, `'20:9'`, `'19.5:9'`, `'16:9'`, `'4:3'`, `'3:2'`, `'1:1'` (default), `'2:3'`, `'3:4'`, `'9:16'`, `'9:19.5'`, `'9:20'`, `'1:2'`, `'auto'` (default in edit mode)
+   * - **mai_image_2_5_pro**: `'auto'` (default), `'1:1'`, `'4:3'`, `'3:4'`, `'16:9'`, `'9:16'`, `'3:2'`, `'2:3'`
    */
   aspect_ratio?: string;
 
-  /** For img2img: input image URL */
+  /**
+   * For img2img: input image URL or local path.
+   * For `image_list`-based edit models (gpt_image_2, grok_imagine v2, qwen_image_3, seedream_v5_pro, mai_image_2_5_pro)
+   * a single `image` is auto-promoted to `image_list: [image]`.
+   */
   image?: string;
 
-  /** For batch img2img (Nano Banana Pro): up to 14 image URLs */
+  /**
+   * Edit-mode reference images (URLs or local paths — auto-uploaded). Presence switches the model to edit mode.
+   * - **Nano Banana Pro**: up to 14
+   * - **gpt_image_2**: up to 16
+   * - **grok_imagine (v2)**, **qwen_image_3**: 1–3
+   * - **seedream_v5_pro**, **mai_image_2_5_pro**: 1–10
+   */
   image_list?: string[];
 
-  /** DALL-E 3 quality: `'standard'`, `'hd'`, `'auto'` */
+  /**
+   * Quality.
+   * - **DALL-E 3**: `'standard'`, `'hd'`, `'auto'`
+   * - **grok_imagine (v2)**: `'low'`, `'medium'` (default; text-to-image only)
+   */
   quality?: string;
 
   /** GPT Image background: `'transparent'`, `'opaque'`, `'auto'` */
   background?: string;
 
-  /** GPT Image output format: `'png'`, `'jpeg'`, `'webp'` */
+  /**
+   * Output format.
+   * - **GPT Image**, **grok_imagine (v2)**: `'png'`, `'jpeg'`, `'webp'` (grok default `'jpeg'`)
+   * - **mai_image_2_5_pro**: `'jpeg'`, `'png'` (default), `'webp'`
+   * - **qwen_image_3**: default `'png'`
+   */
   output_format?: string;
+
+  /**
+   * Number of output images (fal-based models).
+   * - **grok_imagine (v2)**: 1–4 (default 1)
+   * - **qwen_image_3**: 1–6 (default 1)
+   * - seedream_v5_pro / mai_image_2_5_pro always return 1 image
+   */
+  num_images?: number;
 
   // ── Additional fields ──
 

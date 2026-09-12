@@ -1,6 +1,6 @@
 ---
 name: zyka-ai
-description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
+description: Generate AI videos, images, voice, and use AI apps using the Zyka CLI. Use when users want to create AI-generated media — videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora, MiniMax), images (DALL·E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen, Seedream, MAI), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, or AI apps (upscale, face swap, captions, dubbing, etc.).
 ---
 
 # Zyka AI Media Generation
@@ -50,6 +50,7 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | ByteDance OmniHuman | `bytedance` | `-s "OmniHuman"`, `--image ./face.jpg --audio ./speech.mp3` |
 | ByteDance OmniHuman v1.5 | `bytedance` | `-s "OmniHuman v1.5"`, `--image ./face.jpg --audio ./speech.mp3` |
 | Alibaba WAN T2V | `wan` | `-s wan-2-6-t2v`, `-d 5/10/15`, `--size 1280*720` |
+| Alibaba WAN 3.0 | `wan` | `-s wan-3-0`, `-d 2-30`, `--resolution 480p/720p/1080p`, `--image ./start.jpg --end-image ./end.jpg` (I2V) or `--reference-images/--reference-videos/--reference-audios` (R2V); native audio on by default (`--no-generate-audio` to disable) |
 | Alibaba WAN 2.7 | `wan` | `-s wan-2-7`, `-d 5/10/15`, `--size 1280*720` |
 | Alibaba WAN I2V | `wan` | `-s wan-2-6-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
 | Alibaba WAN I2V 2.5 | `wan` | `-s wan-2-5-i2v`, `--image ./img.jpg`, `-d 5/10/15` |
@@ -60,6 +61,8 @@ npx zyka generate video -m MODEL -p "prompt" [options]
 | LTX Video T2V | `ltx` | `-s ltx-2.3-text-to-video` |
 | LTX Video I2V | `ltx` | `-s ltx-2.3-image-to-video`, `--image ./img.jpg` |
 | Grok Video | `grok` | `-s grok-imagine-video`, `-d 1-15`, `--resolution 720p` |
+| MiniMax H3 | `minimax` | `-s minimax-h3` (default), `-d 5-15`, `--resolution 480P/768P/2K/4K`, `--image ./start.jpg --end-image ./end.jpg`, `--prompt-expansion-mode fast/balanced/quality` |
+| MiniMax H3 Max | `minimax` | `-s minimax-h3-max`, `-d 5-15`, `--resolution 480P/768P`, `-a adaptive`, `--reference-images ./a.png ./b.png --reference-videos ./v.mp4 --reference-audios ./a.mp3` (R2V) |
 
 ### Video Examples
 
@@ -98,6 +101,26 @@ npx zyka generate video -m ltx -s ltx-2.3-text-to-video -p "A flowing river thro
 npx zyka generate video -m grok -p "Medieval knight in mystical forest" -d 6 --resolution 720p -o ./knight.mp4
 ```
 
+**MiniMax H3 (first + last frame, 2K):**
+```bash
+npx zyka generate video -m minimax -s minimax-h3 -p "Slow dolly-in on the lighthouse as waves crash, golden hour" --image ./lighthouse.jpg --end-image ./lighthouse-dusk.jpg -d 8 --resolution 2K -a 16:9 -o ./lighthouse.mp4
+```
+
+**MiniMax H3 Max reference-to-video:**
+```bash
+npx zyka generate video -m minimax -s minimax-h3-max -p "The character from the reference walks through a busy Tokyo crossing at night" --reference-images ./char-front.png ./char-side.png --reference-videos ./walk-cycle.mp4 -d 10 --resolution 768P -a adaptive -o ./tokyo.mp4
+```
+
+**WAN 3.0 image-to-video with native audio:**
+```bash
+npx zyka generate video -m wan -s wan-3-0 -p "Camera orbits the sports car as it idles, engine rumble" --image ./car.jpg -d 12 --resolution 1080p -a 16:9 -o ./car.mp4
+```
+
+**WAN 3.0 reference-to-video:**
+```bash
+npx zyka generate video -m wan -s wan-3-0 -p "Recreate the dance in the reference video with the person from the image" --reference-images ./person.png --reference-videos ./dance.mp4 -d 6 --resolution 720p -o ./dance.mp4
+```
+
 **WAN animate replace (swap character in video):**
 ```bash
 npx zyka generate video -m wan -s wan-v2-2-animate-replace --video ./original.mp4 --image ./new-character.png -o ./swapped.mp4
@@ -133,6 +156,10 @@ npx zyka generate image -m MODEL -p "prompt" [options]
 | Zyka Helion | `zyka_helion` | Fast Zyka-native |
 | Grok Imagine | `grok_imagine` | xAI Grok |
 | Qwen Image 2 Pro | `qwen_image_2_pro` | Chinese/English support |
+| Grok Imagine 2.0 | `grok_imagine` | `-s grok-imagine-image-v2`, `--resolution 1k/2k`, `--quality low/medium`, `--num-images 1-4`, `--aspect-ratio 16:9/auto`; edit via `--image-list` (1-3) |
+| Qwen Image 3 | `qwen_image_3` | `--size 1024*1024/2048*2048/landscape_16_9`, `--num-images 1-6`, `--negative-prompt`; edit via `--image-list` (1-3) |
+| Seedream V5 Pro | `seedream_v5_pro` | ByteDance. `--size auto_2K/2048*1536/square_hd`; edit via `--image-list` (1-10). Always 1 image |
+| MAI-Image-2.5-Pro | `mai_image_2_5_pro` | Microsoft. `--aspect-ratio auto/16:9/9:16/3:2`, `--output-format png/jpeg/webp`; edit via `--image-list` (1-10). Always 1 image |
 | Z Image Turbo | `z_image_turbo` | Fast |
 
 ### Image Examples
@@ -165,6 +192,26 @@ npx zyka generate image -m grok_imagine -p "Abstract golden particles, data visu
 **Qwen image:**
 ```bash
 npx zyka generate image -m qwen_image_2_pro -p "A serene mountain landscape at sunset" -o ./landscape.png
+```
+
+**Grok Imagine 2.0 (2K, multiple images):**
+```bash
+npx zyka generate image -m grok_imagine -s grok-imagine-image-v2 -p "A neon-lit ramen shop in the rain, cinematic" --aspect-ratio 16:9 --resolution 2k --num-images 2 --output-format png -o ./ramen.png
+```
+
+**Qwen Image 3:**
+```bash
+npx zyka generate image -m qwen_image_3 -p "Product shot of a matte black wireless earbud case on marble" --negative-prompt "blurry, text, watermark" --size 2048*2048 -o ./earbuds.png
+```
+
+**Seedream V5 Pro edit (multi-reference):**
+```bash
+npx zyka generate image -m seedream_v5_pro -p "Put the subject in a red trench coat, keep the pose" --image-list ./ref1.jpg ./ref2.jpg --size auto_2K -o ./coat.png
+```
+
+**MAI-Image-2.5-Pro:**
+```bash
+npx zyka generate image -m mai_image_2_5_pro -p "Isometric illustration of a cozy coffee shop interior, pastel palette" --aspect-ratio 16:9 --output-format webp -o ./coffee.webp
 ```
 
 **Zyka Helion (fast):**
@@ -362,7 +409,13 @@ npx zyka generate transcription --audio ./meeting.mp3 --language en-US -o ./tran
 | `--no-wait` | Don't wait for completion |
 | `--negative-prompt` | What to avoid in generation |
 | `--mode` | Kling mode: std or pro |
-| `--resolution` | Resolution: 480p, 720p, 1080p, 1K, 2K, 4K |
+| `--resolution` | Resolution: 480p, 720p, 1080p, 1K, 2K, 4K (minimax: 480P/768P/2K/4K; grok v2: 1k/2k) |
+| `--end-image` | End/last frame image (minimax, wan-3-0) |
+| `--reference-images/--reference-videos/--reference-audios` | Reference inputs for reference-to-video (minimax-h3-max, wan-3-0) |
+| `--prompt-expansion-mode` | MiniMax prompt expansion: fast, balanced, quality |
+| `--no-generate-audio` | Disable WAN 3.0 native audio |
+| `--num-images` | Number of images (grok v2 1-4, qwen_image_3 1-6) |
+| `--image-list` | Multiple edit references (gpt_image_2, grok v2, qwen_image_3, seedream_v5_pro, mai_image_2_5_pro) |
 | `--first-frame` | First frame image (Kling, Veo 3.1, Bytedance) |
 | `--last-frame` | Last frame image (Kling, Veo 3.1, Bytedance) |
 | `--quality` | Quality: standard, hd, auto, low, medium, high |

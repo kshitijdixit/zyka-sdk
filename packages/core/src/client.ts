@@ -47,6 +47,25 @@ import { getVideoModelConfig } from './configs/video';
 import type { ModelConfig } from './configs/types';
 
 // ─────────────────────────────────────────────
+// Image edit-mode routing
+// ─────────────────────────────────────────────
+
+/** Image models whose edit mode takes references via `image_list` (server auto-routes when present). */
+const IMAGE_LIST_EDIT_MODELS = new Set([
+  'gpt_image_2', 'gpt-image-2',
+  'qwen_image_3', 'qwen-image-3',
+  'seedream_v5_pro', 'seedream-v5-pro', 'seedream-5-pro',
+  'mai_image_2_5_pro', 'mai-image-2-5-pro', 'mai-image-2.5-pro',
+]);
+
+function usesImageListForEdit(model: unknown, sub_model: unknown): boolean {
+  if (typeof model !== 'string') return false;
+  if (IMAGE_LIST_EDIT_MODELS.has(model)) return true;
+  // Grok Imagine Image 2.0 uses image_list; v1 (`grok-imagine-image`) does not.
+  return model === 'grok_imagine' && typeof sub_model === 'string' && sub_model.startsWith('grok-imagine-image-v2');
+}
+
+// ─────────────────────────────────────────────
 // Auth resolution
 // ─────────────────────────────────────────────
 
@@ -261,6 +280,14 @@ export class ZykaClient {
     return resolveToUrl(value, this.baseUrl, this.token);
   }
 
+  /** Upload every local path in a string array (reference_*_urls, image_list, …). Non-arrays pass through untouched. */
+  private async resolveFileList(value: unknown): Promise<unknown> {
+    if (!Array.isArray(value) || value.length === 0) return value;
+    return Promise.all(
+      value.map((entry) => (typeof entry === 'string' ? this.resolveFile(entry) : entry))
+    );
+  }
+
   /**
    * After a completed result, download to local path if `output` option is set.
    */
@@ -304,7 +331,8 @@ export class ZykaClient {
   /**
    * Create a video generation job.
    * By default, waits for completion (polls automatically).
-   * Local file paths for image_url, audio_url, first_frame, last_frame are auto-uploaded.
+   * Local file paths for image_url, audio_url, first_frame, last_frame, start_image_url,
+   * end_image_url, video_url and the reference_*_urls arrays are auto-uploaded.
    *
    * @example
    * // Simplest (waits for completion by default)
@@ -341,6 +369,16 @@ export class ZykaClient {
     resolved.last_frame = await this.resolveFile(params.last_frame);
     resolved.inputReference = await this.resolveFile(params.inputReference);
     resolved.video_url = await this.resolveFile(params.video_url);
+    // MiniMax H3 / WAN 3.0 first + last frame
+    resolved.start_image_url = await this.resolveFile(params.start_image_url);
+    resolved.end_image_url = await this.resolveFile(params.end_image_url);
+    // Reference-to-video inputs (minimax-h3-max, wan-3-0) and their Seedance/WAN aliases
+    resolved.reference_image_urls = await this.resolveFileList(params.reference_image_urls);
+    resolved.reference_video_urls = await this.resolveFileList(params.reference_video_urls);
+    resolved.reference_audio_urls = await this.resolveFileList(params.reference_audio_urls);
+    resolved.image_urls = await this.resolveFileList(params.image_urls);
+    resolved.video_urls = await this.resolveFileList(params.video_urls);
+    resolved.audio_urls = await this.resolveFileList(params.audio_urls);
 
     const res = await doRequest<ZykaApiResponse<Record<string, unknown>>>({
       method: 'POST',
@@ -384,7 +422,7 @@ export class ZykaClient {
 
   /**
    * Create an image generation job.
-   * By default, waits for completion. Local file paths for `image` are auto-uploaded.
+   * By default, waits for completion. Local file paths for `image` and `image_list` are auto-uploaded.
    *
    * @example
    * // Simplest (waits by default)
@@ -409,11 +447,12 @@ export class ZykaClient {
       );
     }
 
-    // gpt_image_2 expects an `image_list` array for edit mode (up to 16 refs),
-    // not a single `image` field. Promote `image` → `image_list: [image]` when
-    // the caller passed a single image and didn't already supply `image_list`.
+    // Some models expect an `image_list` array for edit mode (gpt_image_2 up to
+    // 16 refs; grok v2 / qwen_image_3 1-3; seedream_v5_pro / mai_image_2_5_pro
+    // 1-10), not a single `image` field. Promote `image` → `image_list: [image]`
+    // when the caller passed a single image and didn't already supply `image_list`.
     if (
-      resolved.model === 'gpt_image_2' &&
+      usesImageListForEdit(resolved.model, resolved.sub_model) &&
       typeof resolved.image === 'string' &&
       !Array.isArray(resolved.image_list)
     ) {
