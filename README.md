@@ -71,43 +71,79 @@ If you want input validation for compositions, install `zod` as well:
 npm install zod
 ```
 
-## Install as an Agent Plugin
+## Use with AI Agents
 
-The Zyka skill ships as an agent plugin, so coding agents can drive the CLI directly.
-Every target reads the same skill at `skills/zyka-ai/SKILL.md`. Set `ZYKA_API_KEY`
-first (see [Authentication](#authentication)).
+Zyka ships as an **agent skill**, which teaches your coding agent how to drive the
+`zyka` CLI. Once installed, you ask for media in plain language and the agent runs
+the right command for you.
 
-### Claude Code
+Supported: Claude Code, Codex, ChatGPT, Dots, Cursor, Grok Bot and Muse Code.
+Every one of them reads the same skill from `skills/zyka-ai/SKILL.md`.
+
+### Step 1: Prerequisites
+
+Both of these are required, whichever agent you use.
+
+```bash
+# 1. Install the CLI the skill drives
+npm install -g zyka
+
+# 2. Set your API key (get one at https://zyka.ai)
+export ZYKA_API_KEY=zk_live_...
+
+# 3. Confirm it works
+zyka auth whoami
+```
+
+Add the `export` line to your `~/.zshrc` or `~/.bashrc`. Agents inherit the shell
+environment they were launched from, so a key set only in a temporary shell will
+not reach them.
+
+### Step 2: Install into your agent
+
+#### Claude Code
 
 ```bash
 /plugin marketplace add kshitijdixit/zyka-sdk
 /plugin install zyka-sdk@zyka
 ```
 
-### Codex / ChatGPT / Dots
-
-Install from the plugin directory once the listing is approved, or add this repo as a
-marketplace for local use:
+#### Codex, ChatGPT and Dots
 
 ```bash
 codex plugin marketplace add kshitijdixit/zyka-sdk
 codex plugin add zyka-sdk@zyka
 ```
 
-### Cursor and Grok Bot
+Once the directory listing is approved, install it from the Plugins directory in
+ChatGPT, Codex or Dots instead, which is shared across all three.
 
-Both read the manifest at `.cursor-plugin/plugin.json`. Install locally with:
+#### Cursor and Grok Bot
+
+Both read `.cursor-plugin/plugin.json`. Until the marketplace listing is live,
+install it locally:
 
 ```bash
+git clone https://github.com/kshitijdixit/zyka-sdk
 mkdir -p ~/.cursor/plugins/local
-cp -R . ~/.cursor/plugins/local/zyka-sdk
+cp -R zyka-sdk ~/.cursor/plugins/local/zyka-sdk
 ```
 
-Then enable third-party plugins in Cursor settings and reload the window.
+Then enable **Include third-party Plugins, Skills, and other configs** in Cursor
+settings and run **Developer: Reload Window**.
 
-### Muse Code
+#### Muse Code
 
-Plugins and marketplaces are on by default from Muse 1.4.3, so no flag is needed:
+Install the CLI first if you do not have it:
+
+```bash
+curl -fsSL https://dev.meta.ai/install.sh | sh    # macOS and Linux
+muse --version
+```
+
+On Windows use `irm https://dev.meta.ai/install.ps1 | iex` in PowerShell.
+
+Then install the plugin:
 
 ```bash
 muse plugins marketplace add zyka https://github.com/kshitijdixit/zyka-sdk
@@ -115,13 +151,63 @@ muse plugins install zyka-sdk@zyka
 muse plugins list
 ```
 
-On builds older than 1.4.3, run `export MUSE_EXPERIMENTAL_PLUGINS=1` first.
-`muse plugins approve` is only needed for plugins that ship hooks, and this one
-does not.
+Plugins and marketplaces are on by default from Muse 1.4.3. On older builds run
+`export MUSE_EXPERIMENTAL_PLUGINS=1` first. `muse plugins approve` applies only to
+plugins that ship hooks, and this one does not.
 
-Muse also picks the skill up with no plugin plumbing at all, because
-`.agents/skills/zyka-ai/SKILL.md` is committed to this repo. Cloning the repo is
-enough for it to appear in `muse skills list`.
+Muse can also pick the skill up with no plugin install at all, because
+`.agents/skills/zyka-ai/SKILL.md` is committed to this repo:
+
+```bash
+git clone https://github.com/kshitijdixit/zyka-sdk
+cd zyka-sdk
+muse skills list      # zyka-ai appears
+```
+
+### Step 3: Confirm it loaded
+
+| Agent | Command |
+|---|---|
+| Claude Code | `/plugin list` |
+| Codex | `codex plugin list` |
+| Cursor | Settings, then Plugins |
+| Muse Code | `muse plugins list` or `muse skills list` |
+
+### Step 4: Use it
+
+Ask in plain language. The agent picks the model and runs the CLI for you.
+
+```text
+Generate a video of a sunset over mountains using WAN
+Create an image of a neon cyberpunk city with Nano Banana and save it to ./city.png
+Make a talking head video from ./face.jpg and ./speech.mp3
+Dub ./demo.mp4 into Hindi using HeyGen
+Transcribe ./meeting.mp3 and write the transcript to ./notes.txt
+Upscale ./photo.jpg to 4k
+Read the script in ./script.txt out loud with ElevenLabs
+```
+
+Local file paths work directly. The SDK uploads them for you and downloads the
+result to wherever you asked.
+
+Each of those maps to a CLI call you can also run yourself:
+
+```bash
+zyka generate image -m nano_banana -p "neon cyberpunk city" -o ./city.png
+zyka generate video -m wan -p "sunset over mountains" -o ./video.mp4
+zyka generate tts --script "Hello world" --voice-id abc123 -o ./speech.mp3
+zyka generate transcription --audio ./meeting.mp3 -o ./transcript.txt
+```
+
+### Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| Agent does not know about Zyka | Restart the session. Most agents load skills at startup. |
+| `zyka: command not found` | `npm install -g zyka` |
+| `401` or `invalid api key` | The key is not in the agent's environment. Export it in your shell profile, then relaunch the agent. |
+| Skill looks out of date | Reinstall the plugin. Skills are snapshotted at install time, not fetched live. |
+| Validating a change | `muse skills validate ./skills/zyka-ai` |
 
 ### Manifest layout
 
