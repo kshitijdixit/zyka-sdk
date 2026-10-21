@@ -107,14 +107,17 @@ Then enable third-party plugins in Cursor settings and reload the window.
 
 ### Muse Code
 
-Plugins are experimental in Muse, so the flag is required:
+Plugins and marketplaces are on by default from Muse 1.4.3, so no flag is needed:
 
 ```bash
-export MUSE_EXPERIMENTAL_PLUGINS=1
 muse plugins marketplace add zyka https://github.com/kshitijdixit/zyka-sdk
 muse plugins install zyka-sdk@zyka
-muse plugins approve zyka-sdk
+muse plugins list
 ```
+
+On builds older than 1.4.3, run `export MUSE_EXPERIMENTAL_PLUGINS=1` first.
+`muse plugins approve` is only needed for plugins that ship hooks, and this one
+does not.
 
 Muse also picks the skill up with no plugin plumbing at all, because
 `.agents/skills/zyka-ai/SKILL.md` is committed to this repo. Cloning the repo is
