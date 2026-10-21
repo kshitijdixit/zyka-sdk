@@ -1,0 +1,56 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "zyka-sdk",
+  "version": "0.4.14",
+  "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI. 40+ models including Sora, Veo, Kling, WAN, DALL-E, GPT Image, Flux, ElevenLabs, and more.",
+  "author": {
+    "name": "Zyka",
+    "email": "support@zyka.ai",
+    "url": "https://zyka.ai"
+  },
+  "homepage": "https://zyka.ai",
+  "repository": "https://github.com/kshitijdixit/zyka-sdk",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "video-generation",
+    "image-generation",
+    "tts",
+    "media-generation",
+    "sora",
+    "veo",
+    "kling",
+    "elevenlabs",
+    "dall-e"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Zyka AI",
+        "shortDescription": "40+ AI media models, one CLI",
+        "longDescription": "Generate AI videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora, MiniMax), images (DALL-E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen, Seedream, MAI), speech (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio, Sarvam, Gemini TTS), talking heads, and AI apps (upscale, face swap, captions, dubbing, transcription) from a single CLI. Requires a ZYKA_API_KEY from https://zyka.ai.",
+        "developerName": "Zyka",
+        "category": "Creativity",
+        "capabilities": [
+          "Generate AI video with Sora, Veo, Kling, WAN, Seedance, Grok, LTX and MiniMax",
+          "Generate images with DALL-E, GPT Image, Flux, Nano Banana, Qwen and Seedream",
+          "Text to speech with ElevenLabs, Chatterbox, Qwen3, MiniMax and Fish Audio",
+          "Create talking-head and lip-synced video from a face image plus audio",
+          "Dub video into other languages with HeyGen, ElevenLabs or Sarvam",
+          "Transcribe audio and auto-caption video as burn-in MP4 or SRT",
+          "Upscale images and video, face swap, virtual try-on and outfit swap"
+        ],
+        "websiteURL": "https://zyka.ai",
+        "privacyPolicyURL": "https://zyka.ai/privacy",
+        "termsOfServiceURL": "https://zyka.ai/terms-and-conditions",
+        "logo": "./assets/logo.png",
+        "composerIcon": "./assets/logo.png",
+        "defaultPrompt": [
+          "Generate a video of a sunset over mountains using WAN",
+          "Create an image of a neon cyberpunk city with Nano Banana",
+          "Dub this video into Hindi using HeyGen"
+        ]
+      }
+    }
+  }
+}

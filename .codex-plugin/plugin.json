@@ -1,7 +1,7 @@
 {
   "name": "zyka-sdk",
-  "version": "0.4.11",
-  "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI — 40+ models including Sora, Veo, Kling, WAN, DALL-E, GPT Image, Flux, ElevenLabs, and more.",
+  "version": "0.4.14",
+  "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI. 40+ models including Sora, Veo, Kling, WAN, DALL-E, GPT Image, Flux, ElevenLabs, and more.",
   "author": {
     "name": "Zyka",
     "email": "support@zyka.ai",
@@ -25,10 +25,19 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Zyka AI",
-    "shortDescription": "AI video, image, and voice generation — 40+ models in one CLI",
-    "longDescription": "Generate AI videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora), images (DALL-E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen), TTS (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio), talking heads, and AI apps (upscale, face swap, captions, dubbing) — all from one CLI. Requires a ZYKA_API_KEY from https://zyka.ai.",
+    "shortDescription": "40+ AI media models, one CLI",
+    "longDescription": "Generate AI videos (Sora, Veo, Kling, WAN, Seedance, Grok, LTX, Aurora, MiniMax), images (DALL-E, GPT Image, Flux, Nano Banana, Kling, Grok, Zyka Helion, Qwen, Seedream, MAI), speech (ElevenLabs, Chatterbox, Qwen3, MiniMax, Fish Audio, Sarvam, Gemini TTS), talking heads, and AI apps (upscale, face swap, captions, dubbing, transcription) from a single CLI. Requires a ZYKA_API_KEY from https://zyka.ai.",
     "developerName": "Zyka",
-    "category": "Productivity",
+    "category": "Creativity",
+    "capabilities": [
+      "Generate AI video with Sora, Veo, Kling, WAN, Seedance, Grok, LTX and MiniMax",
+      "Generate images with DALL-E, GPT Image, Flux, Nano Banana, Qwen and Seedream",
+      "Text to speech with ElevenLabs, Chatterbox, Qwen3, MiniMax and Fish Audio",
+      "Create talking-head and lip-synced video from a face image plus audio",
+      "Dub video into other languages with HeyGen, ElevenLabs or Sarvam",
+      "Transcribe audio and auto-caption video as burn-in MP4 or SRT",
+      "Upscale images and video, face swap, virtual try-on and outfit swap"
+    ],
     "websiteURL": "https://zyka.ai",
     "privacyPolicyURL": "https://zyka.ai/privacy",
     "termsOfServiceURL": "https://zyka.ai/terms-and-conditions",
@@ -37,7 +46,6 @@
     "defaultPrompt": [
       "Generate a video of a sunset over mountains using WAN",
       "Create an image of a neon cyberpunk city with Nano Banana",
-      "Convert this script to speech using ElevenLabs",
       "Dub this video into Hindi using HeyGen"
     ]
   }

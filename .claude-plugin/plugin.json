@@ -1,0 +1,25 @@
+{
+  "name": "zyka-sdk",
+  "version": "0.4.14",
+  "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI. 40+ models including Sora, Veo, Kling, WAN, DALL-E, GPT Image, Flux, ElevenLabs, and more.",
+  "author": {
+    "name": "Zyka",
+    "email": "support@zyka.ai",
+    "url": "https://zyka.ai"
+  },
+  "homepage": "https://zyka.ai",
+  "repository": "https://github.com/kshitijdixit/zyka-sdk",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "video-generation",
+    "image-generation",
+    "tts",
+    "media-generation",
+    "sora",
+    "veo",
+    "kling",
+    "elevenlabs",
+    "dall-e"
+  ]
+}

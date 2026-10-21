@@ -1,0 +1,17 @@
+{
+  "name": "zyka",
+  "owner": {
+    "name": "Zyka"
+  },
+  "metadata": {
+    "description": "AI media generation plugins by Zyka",
+    "version": "0.4.14"
+  },
+  "plugins": [
+    {
+      "name": "zyka-sdk",
+      "source": "./",
+      "description": "Generate AI videos, images, voice, and use AI apps via the Zyka CLI. 40+ models in one place."
+    }
+  ]
+}

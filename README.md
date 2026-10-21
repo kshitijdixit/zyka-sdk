@@ -71,6 +71,66 @@ If you want input validation for compositions, install `zod` as well:
 npm install zod
 ```
 
+## Install as an Agent Plugin
+
+The Zyka skill ships as an agent plugin, so coding agents can drive the CLI directly.
+Every target reads the same skill at `skills/zyka-ai/SKILL.md`. Set `ZYKA_API_KEY`
+first (see [Authentication](#authentication)).
+
+### Claude Code
+
+```bash
+/plugin marketplace add kshitijdixit/zyka-sdk
+/plugin install zyka-sdk@zyka
+```
+
+### Codex / ChatGPT / Dots
+
+Install from the plugin directory once the listing is approved, or add this repo as a
+marketplace for local use:
+
+```bash
+codex plugin marketplace add kshitijdixit/zyka-sdk
+codex plugin add zyka-sdk@zyka
+```
+
+### Cursor and Grok Bot
+
+Both read the manifest at `.cursor-plugin/plugin.json`. Install locally with:
+
+```bash
+mkdir -p ~/.cursor/plugins/local
+cp -R . ~/.cursor/plugins/local/zyka-sdk
+```
+
+Then enable third-party plugins in Cursor settings and reload the window.
+
+### Muse Code
+
+Plugins are experimental in Muse, so the flag is required:
+
+```bash
+export MUSE_EXPERIMENTAL_PLUGINS=1
+muse plugins marketplace add zyka https://github.com/kshitijdixit/zyka-sdk
+muse plugins install zyka-sdk@zyka
+muse plugins approve zyka-sdk
+```
+
+Muse also picks the skill up with no plugin plumbing at all, because
+`.agents/skills/zyka-ai/SKILL.md` is committed to this repo. Cloning the repo is
+enough for it to appear in `muse skills list`.
+
+### Manifest layout
+
+| Path | Read by |
+|---|---|
+| `plugin.json` | Agent Plugins 1.0.0 standard (Codex, ChatGPT, Dots, Cursor) |
+| `.codex-plugin/plugin.json` | older Codex builds (compatibility fallback) |
+| `.cursor-plugin/plugin.json` | Cursor, Grok Bot |
+| `.claude-plugin/plugin.json` | Claude Code |
+| `.muse-plugin/plugin.json` | Muse Code |
+| `.agents/skills/zyka-ai/SKILL.md` | Muse Code project skills |
+
 ## Authentication
 
 The SDK resolves credentials in this order:

@@ -9,13 +9,13 @@
       "name": "zyka-sdk",
       "source": {
         "source": "local",
-        "path": "../../"
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
+      "category": "Creativity"
     }
   ]
 }
